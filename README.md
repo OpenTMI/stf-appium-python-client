@@ -1,12 +1,60 @@
 ## OpenSTF client with appium capability for test automation
 
+Library provides basic functionality for test automation which allows allocating
+phone from OpenSTF server, initialise adb connection to it and 
+start appium server for it.
+
+Basic idea is to run tests against remote openstf device farm with minimum
+requirements.
+
+
+### Flow
+```
+stf-appium-client      --find/allocate--> OpenSTF(device)
+stf-appium-client      --remoteConnect--> OpenSTF(device)
+stf-appium-client(ADB) <----------------> OpenSTF(ADB)
+stf-appium-client(appium(ADB))
+..appium tests..
+```
+
+
+### Requirements:
+* openstf server and access token 
+* python >=3.7
+* adb
+* appium (`npm install appium`)
+  Library expects that appium is located to PATH
+  
+
 ### Installation
 
-Requirements:
-* python >=3.7
+* `pip install stf-appium-client`
+  
+or for development purpose:
 
+* `pip install -e .`
 
-### Usage
+### usage
+
+#### Python Library
+
+```
+client = StfClient(host=environ.get('STF_HOST'))
+client.connect(token=environ.get('STF_TOKEN'))
+
+with client.allocation_context(
+        requirements=dict(version='10')) as device:
+    print('phone is now allocated and remote connected')
+    with adb(device['remote_adb_url']) as adb_port:
+        print('adb server started with port: {adb_port}')
+            with Appium() as appium:
+                print("Phone is ready for test automation..")
+                # appium is running and ready for usage
+```
+
+See examples from [examples](examples) -folder.
+
+#### CLI
 
 ```shell script
 python stf.py --token 123456 --requirements "{\"version\": \"9\"}" "echo $DEV1_SERIAL"
@@ -17,17 +65,7 @@ Call robot framework
 python stf.py --token 123456 --requirements "{\"version\": \"9\"}" "robot phone/suite" 
 ```
 
-### dynamic environment variables for <command>
-
-| variable          | note | example |
-|-------------------|------|---------|
-| `DEV1_ADB_PORT`     | local adb port | `123` |
-| `DEV1_APPIUM_HOST`  | appium host address | `127.0.0.1:8100` |
-| `DEV1_SERIAL`       | device serial number  | `B2NGAA8831600525`  |
-| `DEV1_REQUIREMENTS` | device requirements as json string  | `{'version': '10'}` |
-| `DEV1_INFO`         | device info as json string |  `{'manufacturer': 'HMD GLOBAL', 'version': '10', 'ready': True, 'platform': 'Android', 'owner': 'me', 'using': False, 'present': True, 'sdk': '29', 'model': ' 7 plus', 'serial': 'B2NGAA8831600525'}`  |
-
-### Help
+#### Help
 
 ```shell script
 $ stf --help
@@ -53,5 +91,4 @@ optional arguments:
   --token TOKEN     openstf access token
   --host HOST       openstf host
   --requirements R  requirements as json string
-
 ```
