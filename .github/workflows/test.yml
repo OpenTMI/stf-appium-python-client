@@ -1,0 +1,32 @@
+name: Unit tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  run-unittests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: Install dependencies
+        run: |
+          pip install .
+          pip install .[dev]
+      - name: Run Unit tests
+        run: make test
+
+      - name: Coveralls
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          flag-name: Unit Test
