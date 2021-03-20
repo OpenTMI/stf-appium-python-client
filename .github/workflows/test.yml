@@ -28,7 +28,6 @@ jobs:
           nosetests --with-xunit --with-coverage --cover-package=stf_appium_client --cover-html --cover-html-dir=htmlcov --cover-xml-file=coverage.xml --xunit-file=results.xml
 
       - name: Coveralls
-        uses: coverallsapp/github-action@master
+        uses: AndreMiras/coveralls-python-action@develop
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./coverage.xml
+          flag-name: Unit Test
