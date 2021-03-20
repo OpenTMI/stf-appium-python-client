@@ -24,8 +24,7 @@ jobs:
           pip install .
           pip install .[dev]
       - name: Run Unit tests
-        run: |
-          nosetests --with-xunit --with-coverage --cover-package=stf_appium_client --cover-html --cover-html-dir=htmlcov --cover-xml-file=coverage.xml --xunit-file=results.xml
+        run: make test
 
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
