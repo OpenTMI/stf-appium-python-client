@@ -33,10 +33,10 @@ jobs:
       - name: Install appium and adb
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.7'
         run:
-          npm install appium android-tools-bin
-          ln -s ./node_modules/android-tools-bin/dist/linux/x86/adb ./node_modules/.bin
-          export PATH=./node_modules/.bin:$PATH
-          appium --version
+          npm install appium android-tools-bin &&
+          ln -s ./node_modules/android-tools-bin/dist/linux/x86/adb ./node_modules/.bin &&
+          export PATH=./node_modules/.bin:$PATH &&
+          appium --version &&
           adb --version
 
       - name: Install dependencies
