@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import time
 import random
+import urllib
 from pyswagger import App, Security
 from pyswagger.contrib.client.requests import Client
 from pydash import filter_, map_, wrap, find, uniq
@@ -36,8 +37,11 @@ class StfClient(Logger):
         url = self.swagger_uri
         self.logger.debug(f"Get to {url}")
         # load Swagger resource file into App object
-        self._app = App._create_(url)  # pylint: disable-line
-
+        try:
+            self._app = App._create_(url)  # pylint: disable-line
+        except (FileNotFoundError, urllib.error.URLError) as error:
+            self.logger.error(error)
+            raise
         auth = Security(self._app)
         auth.update_with('accessTokenAuth', f"Bearer {token}")  # token
         # init swagger client
