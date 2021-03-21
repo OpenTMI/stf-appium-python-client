@@ -34,6 +34,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.7'
         run:
           npm install appium android-tools-bin
+          export PATH="$PATH:./node_modules/.bin"
           appium --version
           adb --version
 
@@ -41,7 +42,9 @@ jobs:
         run: make setup
 
       - name: Run Unit tests
-        run: make test
+        run: |
+          export PATH="$PATH:./node_modules/.bin"
+          make test
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.7'
