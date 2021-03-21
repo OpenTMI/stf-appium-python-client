@@ -17,22 +17,42 @@ stf-appium-client(appium(ADB))
 ..appium tests..
 ```
 
+### Getting Started
 
-### Requirements:
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
+### Prerequisites
 * openstf server and access token 
 * python >=3.7
 * adb
 * appium (`npm install appium`)
   Library expects that appium is located to PATH
-  
 
-### Installation
+### Installing
 
 * `pip install stf-appium-client`
   
 or for development purpose:
 
 * `pip install -e .`
+
+### Running the tests
+
+`make test`
+
+CI runs tests against following environments:
+
+|   | ubuntu-latest | macos-latest | windows-latest |
+| ------------- | ------------- | ------------- | ------------- |
+| 3.7  | ✓  | ✓  | ✓  |
+| 3.8  | ✓  | ✓  | ✓  |
+| 3.9  | ✓  | ✓  | ✓  |
+
+### Deployment
+
+This pip package could be installed together with test framework
+and utilise using CLI interface or via python interface. 
+See more usage examples below.
 
 ### usage
 
@@ -45,7 +65,7 @@ client.connect(token=environ.get('STF_TOKEN'))
 with client.allocation_context(
         requirements=dict(version='10')) as device:
     print('phone is now allocated and remote connected')
-    with adb(device['remote_adb_url']) as adb_port:
+    with AdbServer(device['remote_adb_url']) as adb_port:
         print('adb server started with port: {adb_port}')
             with Appium() as appium:
                 print("Phone is ready for test automation..")
@@ -57,15 +77,14 @@ See examples from [examples](examples) -folder.
 #### CLI
 
 ```shell script
-python stf.py --token 123456 --requirements "{\"version\": \"9\"}" "echo $DEV1_SERIAL"
+stf --token 123456 --requirements "{\"version\": \"9\"}" "echo $DEV1_SERIAL"
 ```
 
 Call robot framework
 ```shell script
-python stf.py --token 123456 --requirements "{\"version\": \"9\"}" "robot phone/suite" 
+stf --token 123456 --requirements "{\"version\": \"9\"}" "robot phone/suite" 
 ```
 
-#### Help
 
 ```shell script
 $ stf --help
@@ -92,3 +111,7 @@ optional arguments:
   --host HOST       openstf host
   --requirements R  requirements as json string
 ```
+
+License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
