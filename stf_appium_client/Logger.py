@@ -2,6 +2,6 @@ import logging
 
 
 class Logger:
-    def __init__(self, name):
-        self.logger = logging.getLogger(name)
+    def __init__(self):
+        self.logger = logging.getLogger('StfAppiumClient')
         # Todo: improve logging module...

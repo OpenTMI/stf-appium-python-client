@@ -6,7 +6,7 @@ import os
 import sys
 import subprocess
 from stf_appium_client.StfClient import StfClient
-from stf_appium_client.AdbServer import adb
+from stf_appium_client.AdbServer import AdbServer
 from stf_appium_client.Appium import Appium
 
 MIN_PYTHON = (3, 7)
@@ -63,7 +63,7 @@ def main():
     client = StfClient(host=args.host)
     client.connect(token=args.token)
     with client.allocation_context(requirements=requirement) as device:
-        with adb(device['remote_adb_url']) as adb_port:
+        with AdbServer(device['remote_adb_url']) as adb_port:
             print(f'adb server started with port: {adb_port}')
             with Appium() as appium:
                 print(f"appium server started at port {appium.port}")

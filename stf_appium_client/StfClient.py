@@ -17,7 +17,7 @@ class StfClient(Logger):
         OpenSTF Client consructor
         :param host: Server address of OpenSTF
         """
-        super().__init__("StfClient")
+        super().__init__()
         self._client = None
         self._app = None
         self._host = host
@@ -214,6 +214,7 @@ class StfClient(Logger):
 
         @atexit.register
         def exit():
+            nonlocal self, device
             if device.get('owner') is not None:
                 self.logger.warn(f"exit:Release device {device.get('serial')}")
                 self.release(device)

@@ -123,13 +123,23 @@ class TestStfClient(unittest.TestCase):
         with self.assertRaises(DeviceNotFound) as error:
             self.client.find_and_allocate({})
 
-    def test_remote_connection(self):
+    def test_remote_connect(self):
         url = '123'
         self.client._client.request = MagicMock(return_value=Response(status=200, data={'remoteConnectUrl': url}))
 
         resource = self.client.allocate({"serial": 123})
         remoteConnectUrl = self.client.remote_connect(resource)
         self.assertEqual(remoteConnectUrl, url)
+
+    def test_remote_disconnect(self):
+        url = '123'
+        self.client._client.request = MagicMock(return_value=Response(status=200, data={'remoteConnectUrl': url}))
+
+        resource = self.client.allocate({"serial": 123})
+        self.client.remote_connect(resource)
+        self.client._client.request.reset_mock()
+        self.client.remote_disconnect(resource)
+        self.client._client.request.assert_called_once()
 
     def test_release(self):
         self.client._client.request = MagicMock(return_value=Response(status=200, data={}))
