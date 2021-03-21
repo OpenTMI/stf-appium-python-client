@@ -25,7 +25,7 @@ Topic :: Software Development :: Testing
 setup(
     name='stf_appium_client',
     use_scm_version=True,
-    packages=find_packages(exclude=['tests']),  # Required
+    packages=find_packages(exclude=['test']),  # Required
     url='https://github.com/opentmi/stf_appium_client',
     license='MIT',
     author='Jussi Vatjus-Anttila',

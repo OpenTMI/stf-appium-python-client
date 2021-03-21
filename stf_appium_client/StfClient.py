@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import time
 import random
+import urllib
 from pyswagger import App, Security
 from pyswagger.contrib.client.requests import Client
 from pydash import filter_, map_, wrap, find, uniq
@@ -17,7 +18,7 @@ class StfClient(Logger):
         OpenSTF Client consructor
         :param host: Server address of OpenSTF
         """
-        super().__init__("StfClient")
+        super().__init__()
         self._client = None
         self._app = None
         self._host = host
@@ -36,8 +37,11 @@ class StfClient(Logger):
         url = self.swagger_uri
         self.logger.debug(f"Get to {url}")
         # load Swagger resource file into App object
-        self._app = App._create_(url)  # pylint: disable-line
-
+        try:
+            self._app = App._create_(url)  # pylint: disable-line
+        except (FileNotFoundError, urllib.error.URLError) as error:
+            self.logger.error(error)
+            raise
         auth = Security(self._app)
         auth.update_with('accessTokenAuth', f"Bearer {token}")  # token
         # init swagger client
@@ -214,6 +218,7 @@ class StfClient(Logger):
 
         @atexit.register
         def exit():
+            nonlocal self, device
             if device.get('owner') is not None:
                 self.logger.warn(f"exit:Release device {device.get('serial')}")
                 self.release(device)
