@@ -33,9 +33,9 @@ jobs:
       - name: Install appium and adb
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.7'
         run:
-          npm install appium android-tools-bin
-          export PATH="$PATH:./node_modules/.bin"
-          appium --version
+          npm install appium android-tools-bin &&
+          export PATH="$PATH:./node_modules/.bin" &&
+          appium --version &&
           adb --version
 
       - name: Install dependencies
@@ -43,14 +43,11 @@ jobs:
 
       - name: Run Unit tests
         run: |
-          export PATH="$PATH:./node_modules/.bin"
-          make test
+          export PATH="$PATH:./node_modules/.bin" && make test
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.7'
         uses: AndreMiras/coveralls-python-action@develop
-        with:
-          flag-name: Unit Test
 
       - name: create packages
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.7'
