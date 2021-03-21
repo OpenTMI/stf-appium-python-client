@@ -48,7 +48,7 @@ setup(
         ]
     },
     extras_require={  # Optional
-        'dev': ['coverage', 'coveralls', 'mock', 'pylint', 'nose', 'pyinstaller']
+        'dev': ['wheel', 'coverage', 'coveralls', 'mock', 'pylint', 'nose', 'pyinstaller']
     },
     keywords="OpenSTF appium robot-framework lockable resource android",
     python_requires=">=3.6",
