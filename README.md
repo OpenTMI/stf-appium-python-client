@@ -1,4 +1,7 @@
-## OpenSTF client with appium capability for test automation
+## OpenSTF+Appium Client for test automation
+
+[![Unit tests](https://github.com/OpenTMI/stf-appium-python-client/actions/workflows/test.yml/badge.svg)](https://github.com/OpenTMI/stf-appium-python-client/actions/workflows/test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/OpenTMI/stf-appium-python-client/badge.svg?branch=main&t=CQV17G)](https://coveralls.io/github/OpenTMI/stf-appium-python-client?branch=main)
 
 Library provides basic functionality for test automation which allows allocating
 phone from OpenSTF server, initialise adb connection to it and 
