@@ -50,7 +50,7 @@ jobs:
       - name: Run Unit tests
         if: matrix.os != 'ubuntu-latest'
         run: |
-          export PATH="$PATH:./node_modules/.bin" && make test
+          make test
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.7'
