@@ -77,8 +77,8 @@ class StfClient(Logger):
         :param device: dictionary device object
         :param timeout_seconds: Means the device will be automatically
                                 removed from the user control if it is kept
-                                idle for this period (in milliseconds);
-                                default value is provided by the provider 'group timeout'
+                                idle for this period. default value is provided
+                                by the provider 'group timeout'
         :return: None
         """
         NotConnectedError.invariant(self._client, 'Not connected')
@@ -195,26 +195,50 @@ class StfClient(Logger):
         device['owner'] = "me"
         return device
 
-    @contextmanager
-    def allocation_context(self, requirements: dict,
-                           allocation_timeout=60,
-                           timeout_seconds=DEFAULT_ALLOCATION_TIMEOUT_SECONDS):
+    def find_wait_and_allocate(self,
+                               requirements: dict,
+                               wait_timeout=60,
+                               timeout_seconds=DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
+                               shuffle: bool = True):
         """
-        :param requirements:
-        :param allocation_timeout: how long time we try to allocate suitable device
-        :param timeout_seconds: allocation timeout
-        :return:
+        wait until suitable device is free and allocate it
+        :param requirements: dict of requirements for DUT
+        :param wait_timeout: wait timeout for suitable free device
+        :param timeout_seconds: allocation timeout. See more from allocate -API.
+        :param shuffle: allocate suitable device randomly.
+        :return: device dictionary
         """
-        self.logger.info(f"Trying to allocate device using requirements: {requirements}")
-        for i in range(allocation_timeout):  # try to allocate for 1 minute..
+        device = None
+        for i in range(wait_timeout):  # try to allocate for 1 minute..
             try:
                 device = self.find_and_allocate(requirements=requirements,
-                                                timeout_seconds=timeout_seconds)
+                                                timeout_seconds=timeout_seconds,
+                                                shuffle=shuffle)
                 break
             except DeviceNotFound:
                 # Wait a while
                 time.sleep(1)
                 pass
+        DeviceNotFound.invariant(device, 'Suitable device not found')
+        return device
+
+    @contextmanager
+    def allocation_context(self, requirements: dict,
+                           wait_timeout=60,
+                           timeout_seconds: int = DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
+                           shuffle: bool = True):
+        """
+        :param requirements:
+        :param wait_timeout: how long time we try to allocate suitable device
+        :param timeout_seconds: allocation timeout
+        :param shuffle: allocate suitable device randomly
+        :return:
+        """
+        self.logger.info(f"Trying to allocate device using requirements: {requirements}")
+        device = self.find_wait_and_allocate(requirements=requirements,
+                                             wait_timeout=wait_timeout,
+                                             timeout_seconds=timeout_seconds,
+                                             shuffle=shuffle)
 
         @atexit.register
         def exit():
