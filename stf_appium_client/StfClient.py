@@ -137,7 +137,7 @@ class StfClient(Logger):
         self.logger.debug(f"`releasing: ${serial}")
         req, resp = self._app.op['deleteUserDeviceBySerial'](serial=serial)
         response = self._client.request((req, resp))
-        assert response.status == 200, 'Could not disconnect to device'
+        assert response.status == 200, f'Releasing fails: {response.data.description}'
         device['owner'] = None
         self.logger.info(f'{device.get("serial")}: released')
 
