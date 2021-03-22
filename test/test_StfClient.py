@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock, PropertyMock
 from pydash import get
 from stf_appium_client.StfClient import StfClient
 from stf_appium_client.exceptions import *
-
+import types
 
 @dataclass
 class Response:
@@ -28,6 +28,15 @@ class TestStfClientBasics(unittest.TestCase):
             client.release({})
         with self.assertRaises(NotConnectedError):
             client.find_and_allocate({})
+        # Check that all API's exists
+        self.assertIsInstance(client.allocate, types.MethodType)
+        self.assertIsInstance(client.release, types.MethodType)
+        self.assertIsInstance(client.remote_connect, types.MethodType)
+        self.assertIsInstance(client.remote_disconnect, types.MethodType)
+        self.assertIsInstance(client.get_devices, types.MethodType)
+        self.assertIsInstance(client.find_wait_and_allocate, types.MethodType)
+        self.assertIsInstance(client.find_and_allocate, types.MethodType)
+        self.assertIsInstance(client.allocation_context, types.MethodType)
 
     @patch('stf_appium_client.StfClient.swagger_uri', new_callable=PropertyMock)
     def test(self, mock_swagger_uri):
