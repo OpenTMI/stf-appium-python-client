@@ -32,12 +32,12 @@ class Appium(Logger):
         self.service.start(args=args)
         assert self.service.is_running, 'Appium did not started :o'
         uri = self.get_wd_hub_uri()
-        self.logger.info(f'Appium started: {uri}')
+        self.logger.info(f'Appium started: {uri} (pid: {self.service._process.pid})')
         return uri
 
     def stop(self):
         assert self.service.is_running, 'Appium is not running'
-        self.logger.info("Close appium server")
+        self.logger.info(f"Close appium server (pid: {self.service._process.pid})")
         self.service.stop()
 
     def __enter__(self):
