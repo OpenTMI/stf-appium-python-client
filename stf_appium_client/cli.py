@@ -8,23 +8,10 @@ import subprocess
 from stf_appium_client.StfClient import StfClient
 from stf_appium_client.AdbServer import AdbServer
 from stf_appium_client.Appium import Appium
+from stf_appium_client.tools import parse_requirements
 
 MIN_PYTHON = (3, 7)
 assert sys.version_info >= MIN_PYTHON, f"requires Python {'.'.join([str(n) for n in MIN_PYTHON])} or newer"
-
-
-def parse_requirements(requirements_str):
-    try:
-        return json.loads(requirements_str)
-    except json.decoder.JSONDecodeError:
-        parts = requirements_str.split('&')
-        if len(parts) == 0:
-            raise ValueError('no requirements given')
-        requirements = dict()
-        for part in parts:
-            key, value = part.split('=')
-            requirements[key] = value
-        return requirements
 
 
 def main():
