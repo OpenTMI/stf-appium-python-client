@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import time
 import random
 import urllib
+import json
 from pyswagger import App, Security
 from pyswagger.contrib.client.requests import Client
 from pydash import filter_, map_, wrap, find, uniq
@@ -35,7 +36,7 @@ class StfClient(Logger):
         :return: None
         """
         url = self.swagger_uri
-        self.logger.debug(f"Get to {url}")
+        self.logger.debug(f"Fetch API spec from: {url}")
         # load Swagger resource file into App object
         try:
             self._app = App._create_(url)  # pylint: disable-line
@@ -46,7 +47,7 @@ class StfClient(Logger):
         auth.update_with('accessTokenAuth', f"Bearer {token}")  # token
         # init swagger client
         self._client = Client(auth)
-        self.logger.info('Client library initiated')
+        self.logger.info('StfClient library initiated')
 
     def get_devices(self, fields: list = []) -> list:
         """
@@ -60,7 +61,7 @@ class StfClient(Logger):
             'present', 'ready', 'using', 'owner', 'marketName',
             'serial', 'manufacturer', 'model', 'platform', 'sdk', 'version'
         ])
-        self.logger.debug('getDevices')
+        self.logger.debug('stf: get devices..')
         req, resp = self._app.op['getDevices'](fields=','.join(fields))
         # prefer json as response
         req.produce('application/json')
@@ -83,12 +84,24 @@ class StfClient(Logger):
         """
         NotConnectedError.invariant(self._client, 'Not connected')
         serial = device.get('serial')
-        self.logger.debug(f"allocate: ${serial}")
+        self.logger.debug(f"{serial}: trying to  allocate")
         timeout = timeout_seconds * 1000
         req, resp = self._app.op['addUserDevice'](device=dict(serial=serial, timeout=timeout))
         response = self._client.request((req, resp))
         assert response.status == 200, 'Could not allocate device'
-        self.logger.info(f'{device.get("serial")}: Allocated (timeout: {timeout_seconds})')
+        self.logger.info(f'{serial}: Allocated (timeout: {timeout_seconds})')
+        device['owner'] = "me"
+
+        @atexit.register
+        def _exit():
+            nonlocal self, device
+            try:
+                if device.get('owner') == "me":
+                    self.logger.warn(f"exit:Release device {device.get('serial')}")
+                    self.release(device)
+            except AssertionError as error:
+                self.logger.error(f'releasing fails: {error}')
+
         return device
 
     def remote_connect(self, device: dict) -> str:
@@ -99,16 +112,16 @@ class StfClient(Logger):
         """
         NotConnectedError.invariant(self._client, 'Not connected')
         serial = device.get('serial')
-        self.logger.debug(f"remoteConnect: ${serial}")
-
+        self.logger.debug(f"{serial}: remoteConnecting")
         req, resp = self._app.op['remoteConnectUserDeviceBySerial'](serial=serial)
         # prefer json as response
         req.produce('application/json')
         response = self._client.request((req, resp))
         assert response.status == 200, 'Could not connect device by serial'
-        remoteConnectUrl = response.data.get('remoteConnectUrl')
-        assert isinstance(remoteConnectUrl, str), 'invalid remoteConnectUrl'
-        return remoteConnectUrl
+        remote_connect_url = response.data.get('remoteConnectUrl')
+        assert isinstance(remote_connect_url, str), 'invalid remoteConnectUrl'
+        self.logger.info(f"{serial}: remoteConnected ({remote_connect_url})")
+        return remote_connect_url
 
     def remote_disconnect(self, device: dict):
         """
@@ -118,13 +131,14 @@ class StfClient(Logger):
         """
         NotConnectedError.invariant(self._client, 'Not connected')
         serial = device.get('serial')
-        self.logger.debug(f"remoteConnect: ${serial}")
+        self.logger.debug(f"{serial}; remote disconnecting..")
 
         req, resp = self._app.op['remoteDisconnectUserDeviceBySerial'](serial=serial)
         # prefer json as response
         req.produce('application/json')
         response = self._client.request((req, resp))
         assert response.status == 200, 'Could not connect device by serial'
+        self.logger.info(f"{serial}; remote disconnected")
 
     def release(self, device: dict) -> None:
         """
@@ -134,12 +148,12 @@ class StfClient(Logger):
         """
         NotConnectedError.invariant(self._client, 'Not connected')
         serial = device.get('serial')
-        self.logger.debug(f"`releasing: ${serial}")
+        self.logger.debug(f'{serial}: releasing..')
         req, resp = self._app.op['deleteUserDeviceBySerial'](serial=serial)
         response = self._client.request((req, resp))
         assert response.status == 200, f'Releasing fails: {response.data.description}'
         device['owner'] = None
-        self.logger.info(f'{device.get("serial")}: released')
+        self.logger.info(f'{serial}: released')
 
     def find_and_allocate(self, requirements: dict,
                           timeout_seconds: int = DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
@@ -156,7 +170,7 @@ class StfClient(Logger):
         req_keys.extend(['present', 'ready', 'using', 'owner'])
         req_keys.extend([
             'serial', 'manufacturer', 'model',
-            'platform', 'sdk', 'version'
+            'platform', 'sdk', 'version', 'note'
         ])
         fields = uniq(req_keys)
 
@@ -169,7 +183,7 @@ class StfClient(Logger):
                 owner=None)
         )
 
-        self.logger.debug(f"Get fields: {','.join(fields)}")
+        self.logger.debug(f"Find devices with requirements: {json.dumps(requirements)}, using fields: {','.join(fields)}")
 
         devices = self.get_devices(fields=fields)
 
@@ -178,11 +192,14 @@ class StfClient(Logger):
         if shuffle:
             random.shuffle(suitable_devices)
 
+        self.logger.debug(f'Found {len(suitable_devices)} suitable devices, try to allocate one')
+
         def allocate_first():
             def try_allocate(device):
                 try:
                     return self.allocate(device, timeout_seconds=timeout_seconds)
-                except AssertionError:
+                except AssertionError as error:
+                    self.logger.warn(f"{device.get('serial')}Allocation fails: {error}")
                     return None
 
             tasks = map_(suitable_devices, lambda item: wrap(item, try_allocate))
@@ -192,7 +209,6 @@ class StfClient(Logger):
         if not result:
             raise DeviceNotFound()
         device = result.args[0]
-        device['owner'] = "me"
         return device
 
     def find_wait_and_allocate(self,
@@ -240,17 +256,9 @@ class StfClient(Logger):
                                              timeout_seconds=timeout_seconds,
                                              shuffle=shuffle)
 
-        @atexit.register
-        def exit():
-            nonlocal self, device
-            if device.get('owner') is not None:
-                self.logger.warn(f"exit:Release device {device.get('serial')}")
-                self.release(device)
-
         self.logger.info(f'device allocated: {device}')
         adb_adr = self.remote_connect(device)
         device['remote_adb_url'] = adb_adr
         yield device
-        self.logger.info(f"Release device {device.get('serial')}")
         self.remote_connect(device)
         self.release(device)

@@ -1,3 +1,4 @@
+import os
 from easyprocess import EasyProcess
 import atexit
 from stf_appium_client.Logger import Logger
@@ -5,33 +6,52 @@ from stf_appium_client.tools import find_free_port
 
 
 class AdbServer(Logger):
-    def __init__(self, adb_server: str, port: int = 0):
-        """ Connect to adb server and open proxy for given port"""
+    def __init__(self, adb_server: str = None, port: int = None):
+        """
+        Connect to adb server and open proxy for given port
+        :param adb_server: adb server to be connected
+        :param port: adb listen port in  localhost. None=default, 0=first free one
+        """
         super().__init__()
-        self._adb_server = adb_server
-        self._port = find_free_port() if port == 0 else port
+        assert adb_server, 'adb_server is not given'
+        self.adb_server = adb_server
+        if port is None:
+            port = 5037  # default adb port
+        self._port = find_free_port() if not port else port
         self.connected = False
 
-    def __enter__(self):
-        self.logger.info("adb connect: ${self._adb_server}")
-        self.connect(self._adb_server)
-
         @atexit.register
-        def exit():
+        def _exit():
             nonlocal self
             if self.connected:
-                print("exit:Killing adb")
+                self.logger.warn("exit:Killing adb")
                 self.kill()
 
+    @property
+    def adb_server(self) -> str:
+        """ Geg remote adb server address """
+        return self._adb_server
+
+    @adb_server.setter
+    def adb_server(self, adb_server: str):
+        """ Set remote adb server address """
+        self._adb_server = adb_server
+
+    def __enter__(self):
+        """ Context entrypoint"""
+        self.logger.info(f"adb connect: {self._adb_server}")
+        self.connect()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print("Killing adb")
+        """ Context exit point """
+        self.logger.info(f"Killing adb {self.port}")
         if self.connected:
             self.kill()
 
     @property
     def port(self) -> int:
+        """ Get local adb server port """
         return self._port
 
     def _execute(self, command: str, timeout: int = 2):
@@ -42,20 +62,25 @@ class AdbServer(Logger):
         :return: EasyProcess instance which contains stdout, stderr and return_code
         """
         port = f"-P {self.port} " if self.port else ""
-        arg1 = f"adb {port} {command}"
-        self.logger.debug(f"Arg: {arg1}")
-        response = EasyProcess(arg1).call(timeout=timeout)
-        self.logger.debug(response.stdout)
+        cmd = f"adb {port} {command}"
+        self.logger.debug(f"adb: {cmd}")
+        my_env = os.environ.copy()
+        if "ADB_VENDOR_KEYS" not in my_env:
+            my_env["ADB_VENDOR_KEYS"] = "~/.android"
+        response = EasyProcess(cmd, env=my_env).call(timeout=timeout)
+        self.logger.debug(f'adb stdout: {response.stdout}')
         return response
 
-    def connect(self, host: str) -> None:
+    def connect(self) -> None:
         """
         Create ADB server using given ADB host
         :param host: ADB host to be used for local adb server
         :return: None
         """
+        assert not self.connected, 'adb is already running'
+        self.logger.debug(f'adb({self._adb_server}): connecting')
         try:
-            cmd = f"connect {host}"
+            cmd = f"connect {self._adb_server}"
             response = self._execute(cmd, 10)
             stdout = response.stdout
             self.logger.debug(stdout)
@@ -63,18 +88,18 @@ class AdbServer(Logger):
         except AssertionError as error:
             self.logger.error(error)
             assert False, f"{error}"
-        else:
-            self.logger.debug(f'adb server running on port: {self.port}')
-            self.connected = True
+
+        self.logger.info(f'adb({self.port}): connected to {self._adb_server}')
+        self.connected = True
 
     def kill(self) -> None:
-        """
-        Kill local adb server
-        :return: None
-        """
-        assert self.connected, 'is not connected'
+        """ Kill local adb server """
+        assert self.connected, 'adb is not started'
         try:
+            self.logger.debug(f'adb({self.port}): killing service')
             self._execute('kill-server')
             self.connected = False
         except AssertionError as error:
-            self.logger.error(error)
+            self.logger.error(f'adb kill failed: {error}')
+            raise
+        self.logger.info(f'adb({self.port}): service killed successfully')
