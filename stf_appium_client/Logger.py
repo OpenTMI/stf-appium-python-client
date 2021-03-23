@@ -9,13 +9,12 @@ class Logger:
 
     def setup_logger(self):
         self.logger.addHandler(logging.NullHandler())
-        if bool(os.environ.get("STF_APPIUM_LOGGING", False)):
-            self.set_debug_logger()
-
-    def set_debug_logger(self):
         FORMAT = "%(asctime)-15s %(name)-8s %(levelname)s: %(message)s"
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
         handler.setFormatter(logging.Formatter(fmt=FORMAT))
         self.logger.addHandler(handler)
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.INFO)
+
+        if bool(os.environ.get("STF_APPIUM_LOGGING", False)):
+            self.logger.setLevel(logging.DEBUG)
