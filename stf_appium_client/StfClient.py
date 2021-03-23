@@ -199,7 +199,7 @@ class StfClient(Logger):
                 try:
                     return self.allocate(device, timeout_seconds=timeout_seconds)
                 except AssertionError as error:
-                    self.logger.warn(f"{device.get('serial')}Allocation fails: {error}")
+                    self.logger.warning(f"{device.get('serial')}Allocation fails: {error}")
                     return None
 
             tasks = map_(suitable_devices, lambda item: wrap(item, try_allocate))

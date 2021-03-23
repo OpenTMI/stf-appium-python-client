@@ -1,7 +1,7 @@
 import unittest
+import logging
 from dataclasses import dataclass
 from unittest.mock import patch, MagicMock, PropertyMock
-from pydash import get
 from stf_appium_client.StfClient import StfClient
 from stf_appium_client.exceptions import *
 import types
@@ -17,6 +17,14 @@ class Response:
 
 
 class TestStfClientBasics(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        logging.disable(logging.CRITICAL)
+
+    @classmethod
+    def tearDownClass(cls):
+        logging.disable(logging.NOTSET)
 
     def test_construct(self):
         client = StfClient('http://localhost')
@@ -47,6 +55,14 @@ class TestStfClientBasics(unittest.TestCase):
 
 
 class TestStfClient(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        logging.disable(logging.CRITICAL)
+
+    @classmethod
+    def tearDownClass(cls):
+        logging.disable(logging.NOTSET)
 
     def setUp(self):
         patcher = patch('stf_appium_client.StfClient.swagger_uri', new_callable=PropertyMock)
