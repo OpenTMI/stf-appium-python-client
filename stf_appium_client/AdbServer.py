@@ -2,7 +2,7 @@ import os
 from easyprocess import EasyProcess
 import atexit
 from stf_appium_client.Logger import Logger
-from stf_appium_client.tools import find_free_port
+from stf_appium_client.tools import find_free_port, assert_tool_exists
 
 
 class AdbServer(Logger):
@@ -27,9 +27,13 @@ class AdbServer(Logger):
                 self.logger.warn("exit:Killing adb")
                 self.kill()
 
+    @staticmethod
+    def ok():
+        assert_tool_exists('adb')
+
     @property
     def adb_server(self) -> str:
-        """ Geg remote adb server address """
+        """ Get remote adb server address """
         return self._adb_server
 
     @adb_server.setter

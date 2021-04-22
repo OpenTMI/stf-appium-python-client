@@ -1,5 +1,6 @@
 import socket
 import json
+import shutil
 from contextlib import closing
 
 
@@ -12,6 +13,10 @@ def find_free_port() -> int:
         s.bind(('localhost', 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return s.getsockname()[1]
+
+
+def assert_tool_exists(tool):
+    assert shutil.which(tool), f'Not found: {tool}'
 
 
 def parse_requirements(requirements_str: str) -> dict:

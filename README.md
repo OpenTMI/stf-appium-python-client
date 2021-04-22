@@ -78,6 +78,14 @@ with client.allocation_context(
 
 See examples from [examples](examples) -folder.
 
+##### Logging
+
+Library utilise python native logging module. Logger name is `StfAppiumClient`. 
+By default it configure default console handler for logger with `INFO` level.
+`STF_APPIUM_LOGGING` env variable can be used to use `DEBUG` logging level.
+If any handlers for this logger is configured before `StfClient` instance 
+creation no default handlers are added.
+
 #### CLI
 
 ```shell script
@@ -106,6 +114,9 @@ DEV1_VERSION
 DEV1_REQUIREMENTS  user given requirements
 DEV1_INFO          phone details
 
+Example: stf --token 123 -- echo \$DEV1_SERIAL
+
+
 positional arguments:
   command           Command to be execute during device allocation
 
@@ -114,6 +125,9 @@ optional arguments:
   --token TOKEN     openstf access token
   --host HOST       openstf host
   --requirements R  requirements as json string
+  --timeout t       allocation timeout
+  --wait_timeout w  max wait time for suitable device allocation
+
 ```
 
 License
