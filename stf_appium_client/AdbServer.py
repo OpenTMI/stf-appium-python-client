@@ -33,7 +33,7 @@ class AdbServer(Logger):
 
     @property
     def adb_server(self) -> str:
-        """ Geg remote adb server address """
+        """ Get remote adb server address """
         return self._adb_server
 
     @adb_server.setter

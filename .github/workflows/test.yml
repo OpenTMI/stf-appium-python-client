@@ -49,6 +49,7 @@ jobs:
       - name: Run Unit tests
         if: matrix.os != 'ubuntu-latest'
         run: |
+          export PATH=./node_modules/.bin:$PATH &&
           make test
 
       - name: Coveralls
