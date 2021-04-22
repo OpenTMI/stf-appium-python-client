@@ -7,14 +7,18 @@ class Logger:
         self.logger = logging.getLogger('StfAppiumClient')
         self.setup_logger()
 
+    @staticmethod
+    def get_default_logger_format():
+        return "%(asctime)-15s %(name)-8s %(levelname)s: %(message)s"
+
     def setup_logger(self):
         if self.logger.handlers:
             return
         self.logger.addHandler(logging.NullHandler())
-        FORMAT = "%(asctime)-15s %(name)-8s %(levelname)s: %(message)s"
+
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
-        handler.setFormatter(logging.Formatter(fmt=FORMAT))
+        handler.setFormatter(logging.Formatter(fmt=Logger.get_default_logger_format()))
         self.logger.addHandler(handler)
         self.logger.setLevel(logging.INFO)
 

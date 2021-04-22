@@ -48,7 +48,8 @@ def main():
         print(f"Invalid requirements: {error}")
         exit(1)
 
-    AdbServer.ok()
+    if not os.environ.get('CI'):
+        AdbServer.ok()
 
     returncode = RETCODE_FAILURE
 

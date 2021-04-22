@@ -78,6 +78,14 @@ with client.allocation_context(
 
 See examples from [examples](examples) -folder.
 
+##### Logging
+
+Library utilise python native logging module. Logger name is `StfAppiumClient`. 
+By default it configure default console handler for logger with `INFO` level.
+`STF_APPIUM_LOGGING` env variable can be used to use `DEBUG` logging level.
+If any handlers for this logger is configured before `StfClient` instance 
+creation no default handlers are added.
+
 #### CLI
 
 ```shell script
