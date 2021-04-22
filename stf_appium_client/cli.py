@@ -24,10 +24,12 @@ def main():
                     'DEV1_APPIUM_HOST   appium host where user given command can connect, e.g. robot framework\n'
                     'DEV1_SERIAL        device details..\n'
                     'DEV1_VERSION\n'
+                    'DEV1_MANUFACTURER\n'
                     'DEV1_MODEL\n'
                     'DEV1_MARKET_NAME\n'
                     'DEV1_REQUIREMENTS  user given requirements\n'
-                    'DEV1_INFO          phone details\n',
+                    'DEV1_INFO          phone details\n'
+                    '\nExample: stf --token 123 -- echo \$DEV1_SERIAL',
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--token',
                         required=True,
@@ -38,6 +40,12 @@ def main():
     parser.add_argument('--requirements', metavar='R', type=str,
                         default="{}",
                         help='requirements as json string')
+    parser.add_argument('--timeout', metavar='t', type=int,
+                        default=StfClient.DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
+                        help='allocation timeout')
+    parser.add_argument('--wait_timeout', metavar='w', type=int,
+                        default=60,
+                        help='max wait time for suitable device allocation')
     parser.add_argument('command', nargs='*',
                         help='Command to be execute during device allocation')
 
@@ -55,7 +63,9 @@ def main():
 
     client = StfClient(host=args.host)
     client.connect(token=args.token)
-    with client.allocation_context(requirements=requirement) as device:
+    with client.allocation_context(requirements=requirement,
+                                   wait_timeout=args.wait_timeout,
+                                   timeout_seconds=args.timeout) as device:
         try:
             with AdbServer(device['remote_adb_url']) as adb:
                 adb.logger.info(f'adb server listening localhost:{adb.port}')

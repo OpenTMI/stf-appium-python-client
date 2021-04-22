@@ -114,6 +114,9 @@ DEV1_VERSION
 DEV1_REQUIREMENTS  user given requirements
 DEV1_INFO          phone details
 
+Example: stf --token 123 -- echo \$DEV1_SERIAL
+
+
 positional arguments:
   command           Command to be execute during device allocation
 
@@ -122,6 +125,9 @@ optional arguments:
   --token TOKEN     openstf access token
   --host HOST       openstf host
   --requirements R  requirements as json string
+  --timeout t       allocation timeout
+  --wait_timeout w  max wait time for suitable device allocation
+
 ```
 
 License
