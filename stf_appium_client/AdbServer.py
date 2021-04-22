@@ -52,7 +52,6 @@ class AdbServer(Logger):
         self.logger.info(f"Killing adb {self.port}")
         if self.connected:
             self.kill()
-        return True
 
     @property
     def port(self) -> int:

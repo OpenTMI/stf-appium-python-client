@@ -56,32 +56,37 @@ def main():
     client = StfClient(host=args.host)
     client.connect(token=args.token)
     with client.allocation_context(requirements=requirement) as device:
+        try:
+            with AdbServer(device['remote_adb_url']) as adb:
+                adb.logger.info(f'adb server listening localhost:{adb.port}')
+                try:
+                    with Appium() as appium:
+                        appium.logger.info(f"appium server listening localhost:{appium.port}")
 
-        with AdbServer(device['remote_adb_url']) as adb:
-            print(f'adb server listening localhost:{adb.port}')
-            with Appium() as appium:
-                print(f"appium server listening localhost:{appium.port}")
+                        appium.logger.info(f'Device in use: {device.manufacturer}:{device.marketName}, model: {device.model}, sn: {device.serial}')
+                        my_env = os.environ.copy()
+                        my_env["DEV1_ADB_PORT"] = f"{adb.port}"
+                        my_env["DEV1_APPIUM_HOST"] = f'127.0.0.1:{appium.port}'
+                        my_env["DEV1_SERIAL"] = device.serial
+                        my_env["DEV1_VERSION"] = device.version
+                        my_env["DEV1_MODEL"] = device.model
+                        my_env["DEV1_MANUFACTURER"] = device.manufacturer
+                        my_env["DEV1_MARKET_NAME"] = device.marketName
+                        my_env["DEV1_REQUIREMENTS"] = f"{requirement}"
+                        my_env["DEV1_INFO"] = json.dumps(device)
 
-                print(f'Device in use: {device.manufacturer}:{device.marketName}, model: {device.model}, sn: {device.serial}')
-                my_env = os.environ.copy()
-                my_env["DEV1_ADB_PORT"] = f"{adb.port}"
-                my_env["DEV1_APPIUM_HOST"] = f'127.0.0.1:{appium.port}'
-                my_env["DEV1_SERIAL"] = device.serial
-                my_env["DEV1_VERSION"] = device.version
-                my_env["DEV1_MODEL"] = device.model
-                my_env["DEV1_MANUFACTURER"] = device.manufacturer
-                my_env["DEV1_MARKET_NAME"] = device.marketName
-                my_env["DEV1_REQUIREMENTS"] = f"{requirement}"
-                my_env["DEV1_INFO"] = json.dumps(device)
-
-                command = " ".join(args.command)
-                print(f"call: {command}")
-                proc = subprocess.Popen(command,
-                                        shell=True,
-                                        stdout=sys.stdout, stderr=sys.stderr,
-                                        cwd=os.curdir, env=my_env)
-                proc.communicate()
-                returncode = proc.returncode
+                        command = " ".join(args.command)
+                        appium.logger.info(f"call: {command}")
+                        proc = subprocess.Popen(command,
+                                                shell=True,
+                                                stdout=sys.stdout, stderr=sys.stderr,
+                                                cwd=os.curdir, env=my_env)
+                        proc.communicate()
+                        returncode = proc.returncode
+                except Exception as error:
+                    appium.logger.error(error)
+        except Exception as error:
+            client.logger.error(error)
     exit(returncode)
 
 
