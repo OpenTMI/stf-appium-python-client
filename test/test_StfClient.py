@@ -1,10 +1,15 @@
 import unittest
+import os
 import logging
+import types
 from dataclasses import dataclass
 from unittest.mock import patch, MagicMock, PropertyMock
 from stf_appium_client.StfClient import StfClient
 from stf_appium_client.exceptions import *
-import types
+
+
+SWAGGER_FILE = os.path.join(os.path.dirname(__file__), './swagger.json')
+
 
 @dataclass
 class Response:
@@ -48,7 +53,7 @@ class TestStfClientBasics(unittest.TestCase):
 
     @patch('stf_appium_client.StfClient.swagger_uri', new_callable=PropertyMock)
     def test(self, mock_swagger_uri):
-        mock_swagger_uri.return_value = './test/swagger.json'
+        mock_swagger_uri.return_value = SWAGGER_FILE
         client = StfClient('localhost')
         client.connect('mytoken')
         mock_swagger_uri.assert_called_once()
@@ -70,7 +75,7 @@ class TestStfClient(unittest.TestCase):
         self.addCleanup(patcher.stop)
 
         self.client = StfClient('localhost')
-        type(self.client).swagger_uri = PropertyMock(return_value='./test/swagger.json')
+        type(self.client).swagger_uri = PropertyMock(return_value=SWAGGER_FILE)
         self.client.connect('token')
 
     def test_get_devices(self):

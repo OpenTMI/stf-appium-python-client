@@ -74,16 +74,24 @@ def main():
                         appium.logger.info(f"appium server listening localhost:{appium.port}")
 
                         appium.logger.info(f'Device in use: {device.manufacturer}:{device.marketName}, model: {device.model}, sn: {device.serial}')
+
+                        custom_env = {}
+                        custom_env["DEV1_ADB_PORT"] = f"{adb.port}"
+                        custom_env["DEV1_APPIUM_HOST"] = f'127.0.0.1:{appium.port}'
+                        custom_env["DEV1_SERIAL"] = device.serial
+                        custom_env["DEV1_VERSION"] = device.version
+                        custom_env["DEV1_MODEL"] = device.model
+                        custom_env["DEV1_MANUFACTURER"] = device.manufacturer
+                        custom_env["DEV1_MARKET_NAME"] = device.marketName
+                        custom_env["DEV1_REQUIREMENTS"] = f"{requirement}"
+                        custom_env["DEV1_INFO"] = json.dumps(device)
+                        appium.logger.info('Env variables:')
+                        for key in custom_env.keys():
+                            appium.logger.info(f'{key}={custom_env[key]}')
+
+                        # merge available env variables
                         my_env = os.environ.copy()
-                        my_env["DEV1_ADB_PORT"] = f"{adb.port}"
-                        my_env["DEV1_APPIUM_HOST"] = f'127.0.0.1:{appium.port}'
-                        my_env["DEV1_SERIAL"] = device.serial
-                        my_env["DEV1_VERSION"] = device.version
-                        my_env["DEV1_MODEL"] = device.model
-                        my_env["DEV1_MANUFACTURER"] = device.manufacturer
-                        my_env["DEV1_MARKET_NAME"] = device.marketName
-                        my_env["DEV1_REQUIREMENTS"] = f"{requirement}"
-                        my_env["DEV1_INFO"] = json.dumps(device)
+                        my_env.update(custom_env)
 
                         command = " ".join(args.command)
                         appium.logger.info(f"call: {command}")
