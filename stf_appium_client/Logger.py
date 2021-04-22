@@ -8,6 +8,8 @@ class Logger:
         self.setup_logger()
 
     def setup_logger(self):
+        if self.logger.handlers:
+            return
         self.logger.addHandler(logging.NullHandler())
         FORMAT = "%(asctime)-15s %(name)-8s %(levelname)s: %(message)s"
         handler = logging.StreamHandler()

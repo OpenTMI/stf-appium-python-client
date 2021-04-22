@@ -12,6 +12,7 @@ from stf_appium_client.tools import parse_requirements
 
 MIN_PYTHON = (3, 7)
 assert sys.version_info >= MIN_PYTHON, f"requires Python {'.'.join([str(n) for n in MIN_PYTHON])} or newer"
+RETCODE_FAILURE = 1
 
 
 def main():
@@ -47,21 +48,27 @@ def main():
         print(f"Invalid requirements: {error}")
         exit(1)
 
+    AdbServer.ok()
+
+    returncode = RETCODE_FAILURE
+
     client = StfClient(host=args.host)
     client.connect(token=args.token)
     with client.allocation_context(requirements=requirement) as device:
-        with AdbServer(device['remote_adb_url']) as adb_port:
-            print(f'adb server started with port: {adb_port}')
-            with Appium() as appium:
-                print(f"appium server started at port {appium.port}")
 
-                print(f'Device in use: {device.manufacturer}:{device.marketName}, sn: {device.serial}')
+        with AdbServer(device['remote_adb_url']) as adb:
+            print(f'adb server listening localhost:{adb.port}')
+            with Appium() as appium:
+                print(f"appium server listening localhost:{appium.port}")
+
+                print(f'Device in use: {device.manufacturer}:{device.marketName}, model: {device.model}, sn: {device.serial}')
                 my_env = os.environ.copy()
-                my_env["DEV1_ADB_PORT"] = f"{adb_port}"
+                my_env["DEV1_ADB_PORT"] = f"{adb.port}"
                 my_env["DEV1_APPIUM_HOST"] = f'127.0.0.1:{appium.port}'
                 my_env["DEV1_SERIAL"] = device.serial
                 my_env["DEV1_VERSION"] = device.version
                 my_env["DEV1_MODEL"] = device.model
+                my_env["DEV1_MANUFACTURER"] = device.manufacturer
                 my_env["DEV1_MARKET_NAME"] = device.marketName
                 my_env["DEV1_REQUIREMENTS"] = f"{requirement}"
                 my_env["DEV1_INFO"] = json.dumps(device)
