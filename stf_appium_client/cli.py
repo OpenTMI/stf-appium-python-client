@@ -78,6 +78,7 @@ def main():
                         custom_env = {}
                         custom_env["DEV1_ADB_PORT"] = f"{adb.port}"
                         custom_env["DEV1_APPIUM_HOST"] = f'127.0.0.1:{appium.port}'
+                        custom_env["DEV1_APPIUM_WD_HUB_URI"] = f'http://127.0.0.1:{appium.port}/wd/hub'
                         custom_env["DEV1_SERIAL"] = device.serial
                         custom_env["DEV1_VERSION"] = device.version
                         custom_env["DEV1_MODEL"] = device.model
