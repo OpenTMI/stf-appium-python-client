@@ -37,7 +37,7 @@ class Appium(Logger):
 
     def stop(self):
         assert self.service.is_running, 'Appium is not running'
-        self.logger.info(f"Close appium server (pid: {self.service._process.pid})")
+        self.logger.info(f"Close appium server (port: {self.port}, pid: {self.service._process.pid})")
         self.service.stop()
 
     def __enter__(self):
