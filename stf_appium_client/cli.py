@@ -8,7 +8,7 @@ import subprocess
 from stf_appium_client.StfClient import StfClient
 from stf_appium_client.AdbServer import AdbServer
 from stf_appium_client.Appium import Appium
-from stf_appium_client.tools import parse_requirements
+from stf_appium_client.tools import parse_requirements, GracefulProcess
 
 MIN_PYTHON = (3, 7)
 assert sys.version_info >= MIN_PYTHON, f"requires Python {'.'.join([str(n) for n in MIN_PYTHON])} or newer"
@@ -96,10 +96,7 @@ def main():
 
                         command = " ".join(args.command)
                         appium.logger.info(f"call: {command}")
-                        proc = subprocess.Popen(command,
-                                                shell=True,
-                                                stdout=sys.stdout, stderr=sys.stderr,
-                                                cwd=os.curdir, env=my_env)
+                        proc = GracefulProcess(command, env=my_env)
                         proc.communicate()
                         returncode = proc.returncode
                 except Exception as error:

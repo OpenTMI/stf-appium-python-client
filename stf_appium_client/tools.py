@@ -2,6 +2,11 @@ import socket
 import json
 import shutil
 from contextlib import closing
+import subprocess
+from threading import Thread, Event
+import sys
+import os
+import signal
 
 
 def find_free_port() -> int:
@@ -41,3 +46,50 @@ def parse_requirements(requirements_str: str) -> dict:
                 raise ValueError('value or key missing')
             requirements[key] = value
         return requirements
+
+
+class GracefulProcess(Thread):
+    def __init__(self, command, env={}):
+        super().__init__()
+        signal.signal(signal.SIGINT, self._sigint)
+
+        self.handle = subprocess.Popen(command,
+                                shell=True, bufsize=0,
+                                stdout=sys.stdout, stderr=sys.stderr,
+                                cwd=os.curdir, env=env)
+        self.start()
+        self._kill = Event()
+
+    @property
+    def returncode(self):
+        return self.handle.returncode
+
+    def _sigint(self, signum, frame):
+        print('sigint:Graceful kill subprocess')
+        self.handle.send_signal(signal.SIGINT)
+        self._kill.set()
+
+    def communicate(self):
+        while self.handle.poll() is None:
+            if self._kill.is_set():
+                print('sigint:allow 7 seconds to teardown nicely')
+                try:
+                    self.handle.wait(7.0)
+                    break
+                except subprocess.TimeoutExpired:
+                    print('sigint:killing not so gently')
+                    self.handle.send_signal(signal.SIGTERM)
+                try:
+                    self.handle.wait(2.0)
+                    break
+                except subprocess.TimeoutExpired:
+                    print('sigint:even sigterm didnt help, lets kill it.')
+                    self.handle.send_signal(signal.SIGKILL)
+                try:
+                    self.handle.wait(2)
+                except subprocess.TimeoutExpired:
+                    print('sigint:ohno..')
+                    break
+
+#p = GracefulProcess('scratch_2.sh')
+#p.communicate()
