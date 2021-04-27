@@ -49,19 +49,22 @@ def parse_requirements(requirements_str: str) -> dict:
 
 
 class GracefulProcess(Thread):
+    SIGINT_TIMEOUT = 7.0
+    SIGTERM_TIMEOUT = 2.0
+
     def __init__(self, command, env={}):
         super().__init__()
         signal.signal(signal.SIGINT, self._sigint)
 
         self.handle = subprocess.Popen(command,
                                 shell=True, bufsize=0,
-                                stdout=sys.stdout, stderr=sys.stderr,
+                                #stdout=sys.stdout, stderr=sys.stderr,
                                 cwd=os.curdir, env=env)
         self.start()
         self._kill = Event()
 
     @property
-    def returncode(self):
+    def returncode(self) -> int:
         return self.handle.returncode
 
     def _sigint(self, signum, frame):
@@ -69,27 +72,34 @@ class GracefulProcess(Thread):
         self.handle.send_signal(signal.SIGINT)
         self._kill.set()
 
+    def _checkpoint(self):
+        if self._kill.is_set():
+            print('sigint:allow 7 seconds to teardown nicely')
+            try:
+                self.handle.wait(GracefulProcess.SIGINT_TIMEOUT)
+                return True
+            except subprocess.TimeoutExpired:
+                print('sigint:killing not so gently')
+                self.handle.send_signal(signal.SIGTERM)
+            try:
+                self.handle.wait(GracefulProcess.SIGTERM_TIMEOUT)
+                return True
+            except subprocess.TimeoutExpired:
+                print('sigint:even sigterm didnt help, lets kill it.')
+                self.handle.send_signal(signal.SIGKILL)
+            try:
+                self.handle.wait(2)
+            except subprocess.TimeoutExpired:
+                print('sigint:ohno..')
+                return True
+
+    def _exists(self):
+        return self.handle.poll() is None
+
     def communicate(self):
-        while self.handle.poll() is None:
-            if self._kill.is_set():
-                print('sigint:allow 7 seconds to teardown nicely')
-                try:
-                    self.handle.wait(7.0)
-                    break
-                except subprocess.TimeoutExpired:
-                    print('sigint:killing not so gently')
-                    self.handle.send_signal(signal.SIGTERM)
-                try:
-                    self.handle.wait(2.0)
-                    break
-                except subprocess.TimeoutExpired:
-                    print('sigint:even sigterm didnt help, lets kill it.')
-                    self.handle.send_signal(signal.SIGKILL)
-                try:
-                    self.handle.wait(2)
-                except subprocess.TimeoutExpired:
-                    print('sigint:ohno..')
-                    break
+        while self._exists():
+            if self._checkpoint():
+                break
 
 #p = GracefulProcess('scratch_2.sh')
 #p.communicate()
