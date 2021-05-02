@@ -44,3 +44,10 @@ class TestTools(unittest.TestCase):
         self.assertTrue(process._checkpoint())
         process.communicate()
         self.assertEqual(process.returncode, -2)
+
+    def test_graceful_process_sigterm(self):
+        process = GracefulProcess('./sub.sh')
+        process.SIGINT_TIMEOUT = 0.5
+        process._sigint(None, None)
+        process.communicate()
+        self.assertEqual(process.returncode, -2)
