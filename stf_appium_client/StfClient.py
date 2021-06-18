@@ -155,23 +155,14 @@ class StfClient(Logger):
         device['owner'] = None
         self.logger.info(f'{serial}: released')
 
-    def find_and_allocate(self, requirements: dict,
-                          timeout_seconds: int = DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
-                          shuffle: bool = True) -> dict:
-        """
-        Find device based on requirements and allocate first
-        :param requirements: dictionary about requirements, e.g. `dict(platform='android')`
-        :param timeout_seconds: allocation timeout when idle, see more from allocation api.
-        :param shuffle: randomize allocation
-        :return: device dictionary
-        """
-        NotConnectedError.invariant(self._client, 'Not connected')
+    def list_devices(self, requirements: str, fields: str = ""):
         req_keys = list(requirements.keys())
         req_keys.extend(['present', 'ready', 'using', 'owner'])
         req_keys.extend([
             'serial', 'manufacturer', 'model',
-            'platform', 'sdk', 'version', 'note'
+            'platform', 'sdk', 'version', 'note', 'group.name'
         ])
+        req_keys.extend(fields.split(','))
         fields = uniq(req_keys)
 
         predicate = requirements.copy()
@@ -183,11 +174,25 @@ class StfClient(Logger):
                 owner=None)
         )
 
-        self.logger.debug(f"Find devices with requirements: {json.dumps(requirements)}, using fields: {','.join(fields)}")
+        self.logger.debug(
+            f"Find devices with requirements: {json.dumps(requirements)}, using fields: {','.join(fields)}")
 
         devices = self.get_devices(fields=fields)
 
-        suitable_devices = filter_(devices, predicate)
+        return filter_(devices, predicate)
+
+    def find_and_allocate(self, requirements: dict,
+                          timeout_seconds: int = DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
+                          shuffle: bool = True) -> dict:
+        """
+        Find device based on requirements and allocate first
+        :param requirements: dictionary about requirements, e.g. `dict(platform='android')`
+        :param timeout_seconds: allocation timeout when idle, see more from allocation api.
+        :param shuffle: randomize allocation
+        :return: device dictionary
+        """
+        NotConnectedError.invariant(self._client, 'Not connected')
+        suitable_devices = self.list_devices(requirements=requirements)
         DeviceNotFound.invariant(len(suitable_devices), 'no suitable devices found')
         if shuffle:
             random.shuffle(suitable_devices)

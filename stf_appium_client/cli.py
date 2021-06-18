@@ -40,6 +40,9 @@ def main():
     parser.add_argument('--requirements', metavar='R', type=str,
                         default="{}",
                         help='requirements as json string')
+    parser.add_argument('--list',
+                        action='store_true',
+                        help='Only list devices as json')
     parser.add_argument('--timeout', metavar='t', type=int,
                         default=StfClient.DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
                         help='allocation timeout')
@@ -63,6 +66,11 @@ def main():
 
     client = StfClient(host=args.host)
     client.connect(token=args.token)
+
+    if args.list:
+        print(client.list_devices(requirements=requirement))
+        exit(0)
+
     with client.allocation_context(requirements=requirement,
                                    wait_timeout=args.wait_timeout,
                                    timeout_seconds=args.timeout) as device:
@@ -103,7 +111,7 @@ def main():
                         proc.communicate()
                         returncode = proc.returncode
                 except Exception as error:
-                    appium.logger.error(error)
+                    client.logger.error(error)
         except Exception as error:
             client.logger.error(error)
     exit(returncode)
