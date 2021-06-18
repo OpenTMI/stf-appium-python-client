@@ -155,7 +155,7 @@ class StfClient(Logger):
         device['owner'] = None
         self.logger.info(f'{serial}: released')
 
-    def list_devices(self, requirements: str, fields: str = ""):
+    def list_devices(self, requirements: dict, fields: str = ""):
         req_keys = list(requirements.keys())
         req_keys.extend(['present', 'ready', 'using', 'owner'])
         req_keys.extend([

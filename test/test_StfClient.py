@@ -50,6 +50,7 @@ class TestStfClientBasics(unittest.TestCase):
         self.assertIsInstance(client.find_wait_and_allocate, types.MethodType)
         self.assertIsInstance(client.find_and_allocate, types.MethodType)
         self.assertIsInstance(client.allocation_context, types.MethodType)
+        self.assertIsInstance(client.list_devices, types.MethodType)
 
     @patch('stf_appium_client.StfClient.swagger_uri', new_callable=PropertyMock)
     def test(self, mock_swagger_uri):
@@ -105,6 +106,12 @@ class TestStfClient(unittest.TestCase):
 
         with self.assertRaises(DeviceNotFound):
             self.client.find_and_allocate({})
+
+    def test_list_devices(self):
+        available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None}
+        self.client.get_devices = MagicMock(return_value=[available])
+        response = self.client.list_devices(requirements={})
+        self.assertEqual(response, [available])
 
     def test_find_and_allocate_success(self):
         available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None}
