@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/stf-appium-client.svg)](https://badge.fury.io/py/stf-appium-client)
 
 Library provides basic functionality for test automation which allows allocating
-phone from OpenSTF server, initialise adb connection to it and 
+phone from [OpenSTF](https://github.com/DeviceFarmer/stf) server, initialise adb connection to it and 
 start appium server for it.
 
 Basic idea is to run tests against remote openstf device farm with minimum
@@ -100,7 +100,7 @@ stf --token 123456 --requirements "{\"version\": \"9\"}" "robot phone/suite"
 
 ```shell script
 $ stf --help
-usage: stf [-h] --token TOKEN [--host HOST] [--requirements R]
+usage: stf [-h] --token TOKEN [--host HOST] [--requirements R] [--list]
            [command [command ...]]
 
 STF client with appium.
@@ -124,6 +124,7 @@ optional arguments:
   -h, --help        show this help message and exit
   --token TOKEN     openstf access token
   --host HOST       openstf host
+  --list l          list only requirements, filtered on given requirements
   --requirements R  requirements as json string
   --timeout t       allocation timeout
   --wait_timeout w  max wait time for suitable device allocation
