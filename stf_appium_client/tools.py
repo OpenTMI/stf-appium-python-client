@@ -39,5 +39,15 @@ def parse_requirements(requirements_str: str) -> dict:
             key, value = part.split('=')
             if not (key and value):
                 raise ValueError('value or key missing')
-            requirements[key] = value
+
+            def split(dest, subkey):
+                if '.' in subkey:
+                    keys = subkey.split('.')
+                    key1 = keys[0]
+                    rest = '.'.join(keys[1:])
+                    dest[key1] = {}
+                    split(dest[key1], rest)
+                else:
+                    dest[subkey] = value
+            split(requirements, key)
         return requirements

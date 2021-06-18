@@ -166,6 +166,7 @@ class StfClient(Logger):
         fields = uniq(req_keys)
 
         predicate = requirements.copy()
+
         predicate.update(
             dict(
                 present=True,
