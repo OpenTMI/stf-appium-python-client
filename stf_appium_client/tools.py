@@ -28,6 +28,8 @@ def parse_requirements(requirements_str: str) -> dict:
     if isinstance(requirements_str, dict):
         return requirements_str
     assert isinstance(requirements_str, str), 'Invalid requirements type'
+    if requirements_str == "":
+        return dict()
     try:
         return json.loads(requirements_str)
     except json.decoder.JSONDecodeError:
