@@ -108,13 +108,19 @@ class TestStfClient(unittest.TestCase):
             self.client.find_and_allocate({})
 
     def test_list_devices(self):
-        available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None}
+        available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[available])
         response = self.client.list_devices(requirements={})
         self.assertEqual(response, [available])
 
+    def test_list_devices_offline(self):
+        available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 1}
+        self.client.get_devices = MagicMock(return_value=[available])
+        response = self.client.list_devices(requirements={})
+        self.assertEqual(response, [])
+
     def test_find_and_allocate_success(self):
-        available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None}
+        available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[available])
         self.client._client.request = MagicMock(return_value=Response(status=200, data={}))
 
@@ -131,8 +137,8 @@ class TestStfClient(unittest.TestCase):
 
     @patch('random.shuffle', side_effect=MagicMock())
     def test_find_and_allocate_second_success(self, mock_choise):
-        invalid = {'serial': '12', 'present': True, 'ready': True, 'using': False, 'owner': None}
-        available = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None}
+        invalid = {'serial': '12', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
+        available = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[invalid, available])
 
         self.client._client.request = MagicMock(side_effect=[
@@ -148,8 +154,8 @@ class TestStfClient(unittest.TestCase):
         self.client.get_devices.assert_called_once()
 
     def test_find_and_allocate_no_suitable(self):
-        dev1 = {'serial': '12', 'present': True, 'ready': True, 'using': False, 'owner': None}
-        dev2 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None}
+        dev1 = {'serial': '12', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
+        dev2 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[dev1, dev2])
 
         self.client._client.request = MagicMock(side_effect=[
@@ -189,7 +195,7 @@ class TestStfClient(unittest.TestCase):
         self.client._client.request.assert_called_once()
 
     def test_allocation_context_first_success(self):
-        dev1 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None}
+        dev1 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[dev1])
         url = '123'
         self.client._client.request = MagicMock(return_value=Response(status=200, data={'remoteConnectUrl': url}))
@@ -200,7 +206,7 @@ class TestStfClient(unittest.TestCase):
 
     @patch('time.sleep', side_effect=MagicMock())
     def test_allocation_context_wait_success(self, mock_sleep):
-        dev1 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None}
+        dev1 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(side_effect=[[], [dev1]])
         url = '123'
         self.client._client.request = MagicMock(return_value=Response(status=200, data={'remoteConnectUrl': url}))
