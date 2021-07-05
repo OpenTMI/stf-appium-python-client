@@ -59,7 +59,8 @@ class StfClient(Logger):
         NotConnectedError.invariant(self._client, 'Not connected')
         fields.extend([
             'present', 'ready', 'using', 'owner', 'marketName',
-            'serial', 'manufacturer', 'model', 'platform', 'sdk', 'version'
+            'serial', 'manufacturer', 'model', 'platform', 'sdk', 'version',
+            'status'
         ])
         self.logger.debug('stf: get devices..')
         req, resp = self._app.op['getDevices'](fields=','.join(fields))
@@ -178,7 +179,8 @@ class StfClient(Logger):
                 present=True,
                 ready=True,
                 using=False,
-                owner=None)
+                owner=None,
+                status=3)  # 3=Online 
         )
 
         self.logger.debug(
