@@ -26,7 +26,7 @@ setup(
     name='stf_appium_client',
     use_scm_version=True,
     packages=find_packages(exclude=['test']),  # Required
-    url='https://github.com/opentmi/stf_appium_client',
+    url='https://github.com/OpenTMI/stf-appium-python-client',
     license='MIT',
     author='Jussi Vatjus-Anttila',
     author_email='jussiva@gmail.com',
@@ -53,7 +53,7 @@ setup(
     keywords="OpenSTF appium robot-framework lockable resource android",
     python_requires=">=3.6",
     project_urls={  # Optional
-        'Bug Reports': 'https://github.com/opentmi/stf_appium_client',
-        'Source': 'https://github.com/opentmi/stf_appium_client',
+        'Bug Reports': 'https://github.com/OpenTMI/stf-appium-python-client/issues',
+        'Source': 'https://github.com/OpenTMI/stf-appium-python-client',
     }
 )
