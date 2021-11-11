@@ -51,6 +51,8 @@ def main():
                         help='max wait time for suitable device allocation')
     parser.add_argument('--verbose', action="store_true",
                         help='verbose appium logging')
+    parser.add_argument('--appium-logs', type=str, default='appium.log',
+                        help='appium logs file')
     parser.add_argument('command', nargs='*',
                         help='Command to be execute during device allocation')
 
@@ -80,8 +82,11 @@ def main():
             with AdbServer(device['remote_adb_url']) as adb:
                 adb.logger.info(f'adb server listening localhost:{adb.port}')
                 try:
-                    extra_args = dict(stdout=PIPE, stderr=PIPE) if args.verbose else {}
-                    with Appium(appium_args=['--log', 'appium.log'], extra_args=extra_args) as appium:
+                    extra_args = dict(stdout=sys.stdout.fileno(), stderr=sys.stderr.fileno()) if args.verbose else {}
+                    appium_args = []
+                    if args.appium_logs:
+                        appium_args.extend(['--log', args.appium_logs])
+                    with Appium(appium_args=appium_args, **extra_args) as appium:
                         appium.logger.info(f"appium server listening localhost:{appium.port}")
 
                         appium.logger.info(f'Device in use: {device.manufacturer}:{device.marketName}, model: {device.model}, sn: {device.serial}')
