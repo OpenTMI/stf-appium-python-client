@@ -1,5 +1,5 @@
 #! python3
-
+from subprocess import PIPE
 import argparse
 import json
 import os
@@ -49,6 +49,10 @@ def main():
     parser.add_argument('--wait_timeout', metavar='w', type=int,
                         default=60,
                         help='max wait time for suitable device allocation')
+    parser.add_argument('--verbose', action="store_true",
+                        help='appium logs to console. WARNING: this mix console prints')
+    parser.add_argument('--appium-logs', metavar='file', type=str, default='',
+                        help='appium logs to file')
     parser.add_argument('command', nargs='*',
                         help='Command to be execute during device allocation')
 
@@ -78,7 +82,11 @@ def main():
             with AdbServer(device['remote_adb_url']) as adb:
                 adb.logger.info(f'adb server listening localhost:{adb.port}')
                 try:
-                    with Appium() as appium:
+                    extra_args = dict(stdout=sys.stdout.fileno(), stderr=sys.stderr.fileno()) if args.verbose else {}
+                    appium_args = []
+                    if args.appium_logs:
+                        appium_args.extend(['--log', args.appium_logs])
+                    with Appium(appium_args=appium_args, **extra_args) as appium:
                         appium.logger.info(f"appium server listening localhost:{appium.port}")
 
                         appium.logger.info(f'Device in use: {device.manufacturer}:{device.marketName}, model: {device.model}, sn: {device.serial}')
