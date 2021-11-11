@@ -50,9 +50,9 @@ def main():
                         default=60,
                         help='max wait time for suitable device allocation')
     parser.add_argument('--verbose', action="store_true",
-                        help='verbose appium logging')
-    parser.add_argument('--appium-logs', type=str, default='appium.log',
-                        help='appium logs file')
+                        help='appium logs to console. WARNING: this mix console prints')
+    parser.add_argument('--appium-logs', metavar='file', type=str, default='',
+                        help='appium logs to file')
     parser.add_argument('command', nargs='*',
                         help='Command to be execute during device allocation')
 

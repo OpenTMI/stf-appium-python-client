@@ -121,13 +121,15 @@ positional arguments:
   command           Command to be execute during device allocation
 
 optional arguments:
-  -h, --help        show this help message and exit
-  --token TOKEN     openstf access token
-  --host HOST       openstf host
-  --list l          list only requirements, filtered on given requirements
-  --requirements R  requirements as json string
-  --timeout t       allocation timeout
-  --wait_timeout w  max wait time for suitable device allocation
+  -h, --help          show this help message and exit
+  --token TOKEN       openstf access token
+  --host HOST         openstf host
+  --list              list only requirements, filtered on given requirements
+  --requirements R    requirements as json string
+  --timeout t         allocation timeout
+  --wait_timeout w    max wait time for suitable device allocation
+  --verbose           appium logs to console. WARNING: this mix console prints
+  --appium-logs file  appium logs to file
 
 ```
 
