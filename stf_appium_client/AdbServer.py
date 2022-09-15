@@ -92,7 +92,7 @@ class AdbServer(Logger):
             assert response.return_code == 0, f"{response.stderr}"
         except AssertionError as error:
             self.logger.error(error)
-            assert False, f"{error}"
+            raise
 
         self.logger.info(f'adb({self.port}): connected to {self._adb_server}')
         self.connected = True

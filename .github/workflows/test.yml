@@ -35,7 +35,7 @@ jobs:
 
       - name: Install appium and adb
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
-        run:
+        run: |
           npm install appium android-tools-bin &&
           cp ./node_modules/android-tools-bin/dist/linux/x86/adb ./node_modules/.bin/adb &&
           export PATH=./node_modules/.bin:$PATH &&
@@ -46,7 +46,7 @@ jobs:
         run: make setup
 
       - name: Run Unit tests
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
         run: |
           export PATH="$PATH:./node_modules/.bin" && make test
 
