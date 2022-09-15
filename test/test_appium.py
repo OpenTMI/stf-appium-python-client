@@ -1,7 +1,7 @@
 import unittest
 import logging
 from shutil import which
-from stf_appium_client.Appium import Appium
+from stf_appium_client.AppiumServer import AppiumServer
 
 
 class TestAppium(unittest.TestCase):
@@ -17,5 +17,5 @@ class TestAppium(unittest.TestCase):
     def test_context(self):
         if not which("appium"):
             self.skipTest("Appium is missing!")
-        with Appium() as appium:
+        with AppiumServer() as appium:
             self.assertIsInstance(appium.port, int)

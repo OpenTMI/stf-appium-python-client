@@ -17,8 +17,9 @@ Operating System :: Microsoft :: Windows
 Operating System :: MacOS :: MacOS X
 Programming Language :: Python
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3.6
 Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.9
+Programming Language :: Python :: 3.10
 Topic :: Software Development :: Testing
 """.strip().splitlines()
 
@@ -51,7 +52,7 @@ setup(
         'dev': ['wheel', 'coverage', 'coveralls', 'mock', 'pylint', 'nose', 'pyinstaller']
     },
     keywords="OpenSTF appium robot-framework lockable resource android",
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/OpenTMI/stf-appium-python-client/issues',
         'Source': 'https://github.com/OpenTMI/stf-appium-python-client',

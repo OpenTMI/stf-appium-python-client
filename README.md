@@ -6,7 +6,7 @@
 
 Library provides basic functionality for test automation which allows allocating
 phone from [OpenSTF](https://github.com/DeviceFarmer/stf) server, initialise adb connection to it and 
-start appium server for it.
+start [appium][https://github.com/appium/python-client] server for it.
 
 Basic idea is to run tests against remote openstf device farm with minimum
 requirements.

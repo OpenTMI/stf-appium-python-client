@@ -7,7 +7,7 @@ import sys
 import subprocess
 from stf_appium_client.StfClient import StfClient
 from stf_appium_client.AdbServer import AdbServer
-from stf_appium_client.Appium import Appium
+from stf_appium_client.AppiumServer import AppiumServer
 from stf_appium_client.tools import parse_requirements
 
 MIN_PYTHON = (3, 7)
@@ -86,7 +86,7 @@ def main():
                     appium_args = []
                     if args.appium_logs:
                         appium_args.extend(['--log', args.appium_logs])
-                    with Appium(appium_args=appium_args, **extra_args) as appium:
+                    with AppiumServer(appium_args=appium_args, **extra_args) as appium:
                         appium.logger.info(f"appium server listening localhost:{appium.port}")
 
                         appium.logger.info(f'Device in use: {device.manufacturer}:{device.marketName}, model: {device.model}, sn: {device.serial}')
