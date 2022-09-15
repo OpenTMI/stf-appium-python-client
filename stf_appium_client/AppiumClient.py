@@ -36,7 +36,7 @@ class AppiumClient(Logger):
     def stop(self):
         assert self._driver, 'Appium driver is not running'
         self.logger.info(f"Close appium driver")
-        self._driver.stop()
+        self._driver.quit()
         self._driver = None
 
     def __enter__(self):
