@@ -77,7 +77,7 @@ with client.allocation_context(
             with AppiumServer() as appium:
                 print("Phone is ready for test automation..")
                 # appium is running and ready for usage
-                with AppiumCLient() as driver:
+                with AppiumClient() as driver:
                    print(driver)
 ```
 
