@@ -6,6 +6,7 @@ from stf_appium_client.tools import find_free_port, assert_tool_exists
 
 
 class AdbServer(Logger):
+    EasyProcess = EasyProcess
     def __init__(self, adb_server: str = None, port: int = None):
         """
         Connect to adb server and open proxy for given port
@@ -24,7 +25,7 @@ class AdbServer(Logger):
         def _exit():
             nonlocal self
             if self.connected:
-                self.logger.warn("exit:Killing adb")
+                self.logger.info("exit:Killing adb")
                 self.kill()
 
     @staticmethod
@@ -71,7 +72,7 @@ class AdbServer(Logger):
         my_env = os.environ.copy()
         if "ADB_VENDOR_KEYS" not in my_env:
             my_env["ADB_VENDOR_KEYS"] = "~/.android"
-        response = EasyProcess(cmd, env=my_env).call(timeout=timeout)
+        response = AdbServer.EasyProcess(cmd, env=my_env).call(timeout=timeout)
         self.logger.debug(f'adb stdout: {response.stdout}')
         return response
 

@@ -7,12 +7,13 @@ from stf_appium_client.Logger import Logger
 
 
 class AppiumServer(Logger):
+    AppiumService = AppiumService
 
     def __init__(self, appium_args: List[str] = None, **kwargs: Any):
         """ Initialize Appium wrapper """
         super().__init__()
         self.port = find_free_port()
-        self.service = AppiumService()
+        self.service = AppiumServer.AppiumService()
         self._extra_args = kwargs
         self._appium_args = appium_args or []
 
@@ -20,7 +21,7 @@ class AppiumServer(Logger):
         def _exit():
             nonlocal self
             if self.service.is_running:
-                self.logger.warn("exit:stop appium")
+                self.logger.info("exit:stop appium")
                 self.stop()
 
     def get_api_path(self) -> str:

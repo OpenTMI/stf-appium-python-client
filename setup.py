@@ -49,11 +49,11 @@ setup(
         ]
     },
     extras_require={  # Optional
-        'dev': ['wheel', 'coverage', 'coveralls', 'mock', 'pylint', 'nose', 'pyinstaller']
+        'dev': ['wheel', 'mock', 'pylint', 'pytest', 'pytest-cov', 'pytest-mock', 'pyinstaller', 'coveralls']
     },
     keywords="OpenSTF appium robot-framework lockable resource android",
     python_requires=">=3.7",
-    project_urls={  # Optional
+    project_urls={  # Optionaly
         'Bug Reports': 'https://github.com/OpenTMI/stf-appium-python-client/issues',
         'Source': 'https://github.com/OpenTMI/stf-appium-python-client',
     }

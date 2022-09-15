@@ -1,29 +1,30 @@
+import logging
 import sys
-import unittest
 import urllib
-from unittest.mock import patch
+import pytest
+from mock import patch
 from stf_appium_client.cli import main
 
 
-class TestAdbServer(unittest.TestCase):
+class TestAdbServer:
 
     def test_help(self):
         testargs = ["prog", "--help"]
-        with self.assertRaises(SystemExit) as cm:
+        with pytest.raises(SystemExit) as cm:
             with patch.object(sys, 'argv', testargs):
                 main()
-        self.assertEqual(cm.exception.code, 0)
+        assert cm.value.code == 0
 
     def test_host_invalid_requirements(self):
         testargs = ["prog", "--token", "123", "--host",
                     "http://test", "--requirements", "asdf"]
-        with self.assertRaises(SystemExit) as cm:
+        with pytest.raises(SystemExit) as cm:
             with patch.object(sys, 'argv', testargs):
                 main()
-        self.assertEqual(cm.exception.code, 1)
+        assert cm.value.code == 1
 
     def test_host_not_found(self):
         testargs = ["prog", "--token", "123", "--host", "http://test"]
-        with self.assertRaises(urllib.error.URLError):
+        with pytest.raises(urllib.error.URLError):
             with patch.object(sys, 'argv', testargs):
                 main()

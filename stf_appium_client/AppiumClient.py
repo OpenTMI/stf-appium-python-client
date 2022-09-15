@@ -6,6 +6,7 @@ from stf_appium_client.Logger import Logger
 
 
 class AppiumClient(Logger):
+    WebDriver = WebDriver
     """"
     Appium client object
     """
@@ -20,7 +21,7 @@ class AppiumClient(Logger):
         def _exit():
             nonlocal self
             if self._driver:
-                self.logger.warn("exit:stop appium-driver")
+                self.logger.info("exit:stop appium-driver")
                 self.stop()
 
     @property
@@ -30,12 +31,13 @@ class AppiumClient(Logger):
 
     def start(self):
         assert not self._driver, 'Appium driver already running'
-        self._driver = WebDriver(command_executor=self._command_executor, **self._kwargs)
+        self._driver = AppiumClient.WebDriver(command_executor=self._command_executor, **self._kwargs)
 
     def stop(self):
         assert self._driver, 'Appium driver is not running'
         self.logger.info(f"Close appium driver")
         self._driver.stop()
+        self._driver = None
 
     def __enter__(self):
         self.start()
