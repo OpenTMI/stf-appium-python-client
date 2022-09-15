@@ -27,10 +27,13 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 * openstf server and access token 
-* python >=3.7
+* python >=3.7  (NOTE: pyswagger lack of python3.10 support!)
 * adb
 * appium (`npm install appium`)
   Library expects that appium is located to PATH
+  * appium 2
+    * remember to install appium drivers, e.g. `appium driver install uiautomator2`
+  * appium 1
 
 ### Installing
 
@@ -71,9 +74,11 @@ with client.allocation_context(
     print('phone is now allocated and remote connected')
     with AdbServer(device['remote_adb_url']) as adb_port:
         print('adb server started with port: {adb_port}')
-            with Appium() as appium:
+            with AppiumServer() as appium:
                 print("Phone is ready for test automation..")
                 # appium is running and ready for usage
+                with AppiumCLient() as driver:
+                   print(driver)
 ```
 
 See examples from [examples](examples) -folder.

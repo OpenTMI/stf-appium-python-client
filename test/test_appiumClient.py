@@ -23,7 +23,5 @@ class TestAppiumClient:
         return mocker.patch("stf_appium_client.AppiumClient.WebDriver")
 
     def test_context(self, mock_webdriver):
-        #if not which("appium"):
-        #    pytest.skip("Appium is missing!")
-        with AppiumClient() as appium:
-            assert appium.driver
+        with AppiumClient(test=1) as driver:
+            mock_webdriver.assert_called_once_with(command_executor='http://localhost:4723', test=1)
