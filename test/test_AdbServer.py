@@ -1,21 +1,23 @@
-import unittest
 import logging
 from shutil import which
+
+import pytest
+
 from stf_appium_client.AdbServer import AdbServer
 
 
-class TestAdbServer(unittest.TestCase):
+class TestAdbServer:
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         logging.disable(logging.CRITICAL)
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_classr(cls):
         logging.disable(logging.NOTSET)
 
     def test_context(self):
         if not which("adb"):
-            self.skipTest("adb is missing!")
+            pytest.skip("adb is missing!")
         with AdbServer('localhost') as adb:
-            self.assertIsInstance(adb.port, int)
+            assert isinstance(adb.port, int)

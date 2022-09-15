@@ -5,7 +5,7 @@ setup:
 	pip install .[dev]
 
 test:
-	nosetests --with-xunit --with-coverage --cover-package=stf_appium_client --cover-html --cover-html-dir=htmlcov --cover-xml-file=coverage.xml --xunit-file=results.xml
+	pytest --cov-report xml:coverage.xml --cov stf_appium_client --junitxml=results.xml test/
 
 package:
 	python setup.py sdist
