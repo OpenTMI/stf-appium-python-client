@@ -1,15 +1,14 @@
 from contextlib import contextmanager
 import time
 import random
-import urllib
 import json
-from pyswagger import App, Security
-from pyswagger.contrib.client.requests import Client
 from pydash import filter_, map_, wrap, find, uniq
 import atexit
 from stf_appium_client.Logger import Logger
 from stf_appium_client.exceptions import DeviceNotFound, NotConnectedError
-
+from stf_client.api_client import ApiClient, Configuration
+from stf_client.api.user_api import UserApi
+from stf_client.api.devices_api import DevicesApi
 
 class StfClient(Logger):
     DEFAULT_ALLOCATION_TIMEOUT_SECONDS = 900
@@ -24,10 +23,7 @@ class StfClient(Logger):
         self._app = None
         self._host = host
 
-    @property
-    def swagger_uri(self) -> str:
-        """ Get swagger.json URI """
-        return f"{self._host}/api/v1/swagger.json"
+        self._configuration = Configuration(host=f'{host}/api/v1')
 
     def connect(self, token: str) -> None:
         """
@@ -35,8 +31,12 @@ class StfClient(Logger):
         :param token: stf access token
         :return: None
         """
-        url = self.swagger_uri
-        self.logger.debug(f"Fetch API spec from: {url}")
+        self.logger.debug(f"Fetch API spec from: {self._configuration}")
+
+        self._configuration.api_key['accessTokenAuth'] = f"Bearer {token}"
+        self._client = ApiClient(self._configuration)
+
+        """
         # load Swagger resource file into App object
         try:
             self._app = App._create_(url)  # pylint: disable-line
@@ -47,6 +47,8 @@ class StfClient(Logger):
         auth.update_with('accessTokenAuth', f"Bearer {token}")  # token
         # init swagger client
         self._client = Client(auth)
+        """
+
         self.logger.info('StfClient library initiated')
 
     def get_devices(self, fields: list = []) -> list:
@@ -57,6 +59,18 @@ class StfClient(Logger):
         :rtype: [dict]
         """
         NotConnectedError.invariant(self._client, 'Not connected')
+
+        fields.extend([
+            'present', 'ready', 'using', 'owner', 'marketName',
+            'serial', 'manufacturer', 'model', 'platform', 'sdk', 'version',
+            'status'
+        ])
+
+        api_instance = DevicesApi(self._client)
+        # target = "user"  # str | Targets devices of your universe:  * bookable - devices belonging to a bookable group  * standard - devices belonging to a standard group  * origin - all devices  * standardizable - devices which are not yet booked including those belonging to a standard group  * user (default value) - devices which are accessible by you at a given time  (optional) if omitted the server will use the default value of "user"
+        api_response = api_instance.get_devices(fields=','.join(fields))
+        devices = api_response.devices
+        """
         fields.extend([
             'present', 'ready', 'using', 'owner', 'marketName',
             'serial', 'manufacturer', 'model', 'platform', 'sdk', 'version',
@@ -69,6 +83,8 @@ class StfClient(Logger):
         response = self._client.request((req, resp))
         assert response.status == 200, 'Could not fetch device list'
         devices = response.data.devices
+        """
+
         assert isinstance(devices, list), 'invalid response'
         self.logger.debug(f'Got devices: {devices}')
         return devices
@@ -87,9 +103,10 @@ class StfClient(Logger):
         serial = device.get('serial')
         self.logger.debug(f"{serial}: trying to  allocate")
         timeout = timeout_seconds * 1000
-        req, resp = self._app.op['addUserDevice'](device=dict(serial=serial, timeout=timeout))
-        response = self._client.request((req, resp))
-        assert response.status == 200, 'Could not allocate device'
+
+        api_instance = UserApi(self._client)
+        api_response = api_instance.add_user_device_v2(serial, timeout=timeout)
+        assert api_response.success, 'allocation fails'
         self.logger.info(f'{serial}: Allocated (timeout: {timeout_seconds})')
         device['owner'] = "me"
 
@@ -114,12 +131,11 @@ class StfClient(Logger):
         NotConnectedError.invariant(self._client, 'Not connected')
         serial = device.get('serial')
         self.logger.debug(f"{serial}: remoteConnecting")
-        req, resp = self._app.op['remoteConnectUserDeviceBySerial'](serial=serial)
-        # prefer json as response
-        req.produce('application/json')
-        response = self._client.request((req, resp))
-        assert response.status == 200, 'Could not connect device by serial'
-        remote_connect_url = response.data.get('remoteConnectUrl')
+
+        api_instance = UserApi(self._client)
+        # Remote Connect
+        api_response = api_instance.remote_connect_user_device_by_serial(serial)
+        remote_connect_url = api_response.remote_connect_url
         assert isinstance(remote_connect_url, str), 'invalid remoteConnectUrl'
         self.logger.info(f"{serial}: remoteConnected ({remote_connect_url})")
         return remote_connect_url
@@ -134,11 +150,10 @@ class StfClient(Logger):
         serial = device.get('serial')
         self.logger.debug(f"{serial}; remote disconnecting..")
 
-        req, resp = self._app.op['remoteDisconnectUserDeviceBySerial'](serial=serial)
-        # prefer json as response
-        req.produce('application/json')
-        response = self._client.request((req, resp))
-        assert response.status == 200, 'Could not connect device by serial'
+        api_instance = UserApi(self._client)
+        # Remote Connect
+        api_response = api_instance.remote_disconnect_user_device_by_serial(serial)
+        assert api_response.success, 'disconnection fails'
         self.logger.info(f"{serial}; remote disconnected")
 
     def release(self, device: dict) -> None:
@@ -150,9 +165,10 @@ class StfClient(Logger):
         NotConnectedError.invariant(self._client, 'Not connected')
         serial = device.get('serial')
         self.logger.debug(f'{serial}: releasing..')
-        req, resp = self._app.op['deleteUserDeviceBySerial'](serial=serial)
-        response = self._client.request((req, resp))
-        assert response.status == 200, f'Releasing fails: {response.data.description}'
+
+        api_instance = UserApi(self._client)
+        api_response = api_instance.delete_user_device_by_serial(serial)
+        assert api_response.success, 'release fails'
         device['owner'] = None
         self.logger.info(f'{serial}: released')
 
@@ -180,7 +196,7 @@ class StfClient(Logger):
                 ready=True,
                 using=False,
                 owner=None,
-                status=3)  # 3=Online 
+                status=3)  # 3=Online
         )
 
         self.logger.debug(
@@ -276,3 +292,4 @@ class StfClient(Logger):
         self.remote_connect(device)
         yield device
         self.release(device)
+
