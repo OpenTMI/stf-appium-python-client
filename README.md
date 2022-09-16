@@ -17,7 +17,8 @@ requirements.
 stf-appium-client      --find/allocate--> OpenSTF(device)
 stf-appium-client      --remoteConnect--> OpenSTF(device)
 stf-appium-client(ADB) <----------------> OpenSTF(ADB)
-stf-appium-client(appium(ADB))
+stf-appium-client(AppiumServer(ADB))
+stf-appium-client(AppiumClient(AppiumServer))
 ..appium tests..
 ```
 
@@ -49,11 +50,12 @@ or for development purpose:
 
 CI runs tests against following environments:
 
-|   | ubuntu-latest | macos-latest | windows-latest |
-| ------------- | ------------- | ------------- | ------------- |
+|      | ubuntu-latest | macos-latest | windows-latest |
+|------| ------------- | ------------- | ------------- |
 | 3.7  | ✓  | ✓  | ✓  |
 | 3.8  | ✓  | ✓  | ✓  |
 | 3.9  | ✓  | ✓  | ✓  |
+| 3.10 | ✓  | ✓  | ✓  |
 
 ### Deployment
 
