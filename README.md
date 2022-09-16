@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/stf-appium-client.svg)](https://badge.fury.io/py/stf-appium-client)
 
 Library provides basic functionality for test automation which allows allocating
-phone from [OpenSTF](https://github.com/DeviceFarmer/stf) server, initialise adb connection to it and 
+phone from [OpenSTF](https://github.com/DeviceFarmer/stf) server using [python stf-client](https://pypi.org/project/stf-client/), initialise adb connection to it and 
 start [appium][https://github.com/appium/python-client] server for it.
 
 Basic idea is to run tests against remote openstf device farm with minimum
@@ -27,7 +27,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 * openstf server and access token 
-* python >=3.7  (NOTE: pyswagger lack of python3.10 support!)
+* python >=3.7
 * adb
 * appium (`npm install appium`)
   Library expects that appium is located to PATH

@@ -18,10 +18,7 @@ class TestAppiumClient:
     def teardown_class(cls):
         logging.disable(logging.NOTSET)
 
-    @pytest.fixture
-    def mock_webdriver(self, mocker) -> MagicMock:
-        return mocker.patch("stf_appium_client.AppiumClient.WebDriver")
-
+    @patch("stf_appium_client.AppiumClient.WebDriver")
     def test_context(self, mock_webdriver):
         with AppiumClient(test=1) as driver:
             mock_webdriver.assert_called_once_with(command_executor='http://localhost:4723', test=1)

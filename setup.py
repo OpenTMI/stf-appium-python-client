@@ -20,6 +20,7 @@ Programming Language :: Python :: 3
 Programming Language :: Python :: 3.7
 Programming Language :: Python :: 3.8
 Programming Language :: Python :: 3.9
+Programming Language :: Python :: 3.10
 Topic :: Software Development :: Testing
 """.strip().splitlines()
 
@@ -38,7 +39,7 @@ setup(
     setup_requires=["setuptools_scm"],
     install_requires=[
         "Appium-Python-Client",
-        "pyswagger",
+        "stf-client==0.1.0",
         "pydash",
         "easyprocess",
         "requests"

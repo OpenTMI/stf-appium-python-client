@@ -2,6 +2,7 @@ import logging
 import sys
 import urllib
 import pytest
+import urllib3.exceptions
 from mock import patch
 from stf_appium_client.cli import main
 
@@ -25,6 +26,6 @@ class TestAdbServer:
 
     def test_host_not_found(self):
         testargs = ["prog", "--token", "123", "--host", "http://test"]
-        with pytest.raises(urllib.error.URLError):
+        with pytest.raises(urllib3.exceptions.MaxRetryError) as error:
             with patch.object(sys, 'argv', testargs):
                 main()

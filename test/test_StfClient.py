@@ -1,24 +1,11 @@
 import unittest
-import os
 import logging
 import types
-from dataclasses import dataclass
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 from stf_appium_client.StfClient import StfClient
 from stf_appium_client.exceptions import *
 
 
-SWAGGER_FILE = os.path.join(os.path.dirname(__file__), './swagger.json')
-
-
-@dataclass
-class Response:
-    status: int
-    data: dict
-
-    @property
-    def success(self):
-        return self.status == 200
 
 
 class TestStfClientBasics(unittest.TestCase):
@@ -34,7 +21,6 @@ class TestStfClientBasics(unittest.TestCase):
     def test_construct(self):
         client = StfClient('http://localhost')
         self.assertIsInstance(client, StfClient)
-        self.assertEqual(client.swagger_uri, 'http://localhost/api/v1/swagger.json')
         with self.assertRaises(NotConnectedError):
             client.allocate({})
         with self.assertRaises(NotConnectedError):
@@ -52,12 +38,13 @@ class TestStfClientBasics(unittest.TestCase):
         self.assertIsInstance(client.allocation_context, types.MethodType)
         self.assertIsInstance(client.list_devices, types.MethodType)
 
-    @patch('stf_appium_client.StfClient.swagger_uri', new_callable=PropertyMock)
-    def test(self, mock_swagger_uri):
-        mock_swagger_uri.return_value = SWAGGER_FILE
+    @patch('stf_appium_client.StfClient.Configuration')
+    @patch('stf_appium_client.StfClient.ApiClient')
+    def test(self, mock_client, mock_conf):
         client = StfClient('localhost')
+        mock_conf.assert_called_once()
         client.connect('mytoken')
-        mock_swagger_uri.assert_called_once()
+        mock_client.assert_called_once()
 
 
 class TestStfClient(unittest.TestCase):
@@ -71,39 +58,51 @@ class TestStfClient(unittest.TestCase):
         logging.disable(logging.NOTSET)
 
     def setUp(self):
-        patcher = patch('stf_appium_client.StfClient.swagger_uri', new_callable=PropertyMock)
-        self.mock_swagger_uri = patcher.start()
-        self.addCleanup(patcher.stop)
+        patcher_conf = patch('stf_appium_client.StfClient.Configuration')
+        patcher_client = patch('stf_appium_client.StfClient.ApiClient')
+        patcher_userapi = patch('stf_appium_client.StfClient.UserApi')
+        patcher_devicesapi = patch('stf_appium_client.StfClient.DevicesApi')
+        self.addCleanup(patcher_conf.stop)
+        self.addCleanup(patcher_client.stop)
+        self.addCleanup(patcher_userapi.stop)
+        self.addCleanup(patcher_devicesapi.stop)
+
+        self.Configuration = patcher_conf.start()
+        self.ApiClient = patcher_client.start()
+        self.UserApi = patcher_userapi.start()
+        self.DevicesApi = patcher_devicesapi.start()
+
+        class MockResp:
+            remote_connect_url = '123'
+        self.UserApi.return_value.remote_connect_user_device_by_serial = MagicMock(return_value=MockResp())
 
         self.client = StfClient('localhost')
-        type(self.client).swagger_uri = PropertyMock(return_value=SWAGGER_FILE)
         self.client.connect('token')
 
     def test_get_devices(self):
-        @dataclass
-        class Data:
+        class MockResp:
             devices = []
-        self.client._client.request = MagicMock(return_value=Response(status=200, data=Data()))
+        self.DevicesApi.return_value.get_devices = MagicMock(return_value=MockResp())
         devices = self.client.get_devices()
         self.assertEqual(devices, [])
 
-    def test_allocate(self):
-        self.client._client.request = MagicMock(return_value=Response(status=200, data={}))
+    def test_allocate_release(self):
+        mock_add_device = MagicMock()
+        mock_delete_device = MagicMock()
+        self.UserApi.return_value.add_user_device_v2 = mock_add_device
+        self.UserApi.return_value.delete_user_device_by_serial = mock_delete_device
 
-        resource = self.client.allocate({"serial": 123})
-        self.assertEqual(resource['serial'], 123)
+        resource = self.client.allocate({"serial": '123'})
+        self.assertEqual(resource['serial'], '123')
+        self.client.release({"serial": '123'})
 
         # validate under the hoods
-        self.client._client.request.assert_called_once()
-        call = self.client._client.request.call_args_list[0]
-        req, resp = call[0][0]
-        self.assertEqual(req.path, '/user/devices')
-        self.assertEqual(req.method, 'post')
+        mock_add_device.assert_called_once()
 
     def test_find_and_allocate_but_device_not_found(self):
-        self.client.get_devices = MagicMock(return_value=[])
-        self.client._client.request = MagicMock(return_value=Response(status=200, data={}))
-
+        class MockResp:
+            devices = []
+        self.DevicesApi.return_value.get_devices = MagicMock(return_value=MockResp())
         with self.assertRaises(DeviceNotFound):
             self.client.find_and_allocate({})
 
@@ -120,85 +119,83 @@ class TestStfClient(unittest.TestCase):
         self.assertEqual(response, [])
 
     def test_find_and_allocate_success(self):
-        available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
+        available = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[available])
-        self.client._client.request = MagicMock(return_value=Response(status=200, data={}))
+        self.client.allocate = MagicMock()
 
         device = self.client.find_and_allocate({})
         self.assertEqual(device, available)
 
         # validate under the hoods
         self.client.get_devices.assert_called_once()
-        self.client._client.request.assert_called_once()
-        call = self.client._client.request.call_args_list[0]
-        req, resp = call[0][0]
-        self.assertEqual(req.path, '/user/devices')
-        self.assertEqual(req.method, 'post')
+        self.client.allocate.assert_called_once_with(available, timeout_seconds=900)
 
     @patch('random.shuffle', side_effect=MagicMock())
     def test_find_and_allocate_second_success(self, mock_choise):
-        invalid = {'serial': '12', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
+        invalid = {'serial': '12', 'present': False, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         available = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[invalid, available])
 
-        self.client._client.request = MagicMock(side_effect=[
-            Response(status=300, data={}),
-            Response(status=200, data={})
-        ])
+        def dummy_alloc(dev, timeout_seconds):
+            return dev
+
+        self.client.allocate = MagicMock(side_effect=dummy_alloc)
 
         device = self.client.find_and_allocate({})
         available['owner'] = 'me'
         self.assertEqual(device, available)
+        self.client.release(device)
 
         # validate under the hoods
         self.client.get_devices.assert_called_once()
 
     def test_find_and_allocate_no_suitable(self):
-        dev1 = {'serial': '12', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
-        dev2 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
+        dev1 = {'serial': '12', 'present': True, 'ready': True, 'using': True, 'owner': None, 'status': 3}
+        dev2 = {'serial': '123', 'present': True, 'ready': True, 'using': True, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[dev1, dev2])
+        self.client.allocate = MagicMock()
 
-        self.client._client.request = MagicMock(side_effect=[
-            Response(status=300, data={}),
-            Response(status=300, data={})
-        ])
-
-        with self.assertRaises(DeviceNotFound) as error:
+        with self.assertRaises(DeviceNotFound):
             self.client.find_and_allocate({})
 
     def test_remote_connect(self):
-        url = '123'
-        self.client._client.request = MagicMock(return_value=Response(status=200, data={'remoteConnectUrl': url}))
 
-        resource = self.client.allocate({"serial": 123})
+        self.UserApi.return_value.add_user_device_v2 = MagicMock()
+
+        self.UserApi.return_value.delete_user_device_by_serial = MagicMock()
+        resource = self.client.allocate({"serial": '123'})
         remoteConnectUrl = self.client.remote_connect(resource)
-        self.assertEqual(remoteConnectUrl, url)
+        self.client.release(resource)
+        self.assertEqual(remoteConnectUrl, '123')
+        self.UserApi.return_value.add_user_device_v2.assert_called_once_with('123', timeout=900000)
+        self.UserApi.return_value.remote_connect_user_device_by_serial.assert_called_once_with('123')
 
-    def test_remote_disconnect(self):
+    def test_remote_disconnect(self, ):
         url = '123'
-        self.client._client.request = MagicMock(return_value=Response(status=200, data={'remoteConnectUrl': url}))
+        class MockResp:
+            remote_connect_url=url
+        self.UserApi.return_value.remote_connect_user_device_by_serial = MagicMock(return_value=MockResp())
 
-        resource = self.client.allocate({"serial": 123})
+        self.UserApi.return_value.remote_disconnect_user_device_by_serial = MagicMock()
+
+        device = {"serial": 123}
+        resource = self.client.allocate(device)
         self.client.remote_connect(resource)
-        self.client._client.request.reset_mock()
         self.client.remote_disconnect(resource)
-        self.client._client.request.assert_called_once()
+        self.client.release(resource)
+        self.UserApi.return_value.remote_disconnect_user_device_by_serial.assert_called_once_with(123)
 
     def test_release(self):
-        self.client._client.request = MagicMock(return_value=Response(status=200, data={}))
-
-        resource = self.client.allocate({"serial": 123})
-        self.assertEqual(resource['serial'], 123)
-        self.client._client.request.reset_mock()
-
+        resource = self.client.allocate({"serial": '123'})
+        self.assertEqual(resource['serial'], '123')
         self.client.release(resource)
-        self.client._client.request.assert_called_once()
+        self.UserApi.return_value.add_user_device_v2.assert_called_once_with('123', timeout=900000)
+        self.UserApi.return_value.delete_user_device_by_serial.assert_called_once_with('123')
 
     def test_allocation_context_first_success(self):
         dev1 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[dev1])
         url = '123'
-        self.client._client.request = MagicMock(return_value=Response(status=200, data={'remoteConnectUrl': url}))
 
         with self.client.allocation_context({"serial": '123'}) as device:
             self.assertEqual(device['serial'], '123')
@@ -209,7 +206,6 @@ class TestStfClient(unittest.TestCase):
         dev1 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(side_effect=[[], [dev1]])
         url = '123'
-        self.client._client.request = MagicMock(return_value=Response(status=200, data={'remoteConnectUrl': url}))
 
         with self.client.allocation_context({"serial": '123'}) as device:
             self.assertEqual(device['serial'], '123')

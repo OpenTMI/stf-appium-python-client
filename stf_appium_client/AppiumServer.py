@@ -7,13 +7,12 @@ from stf_appium_client.Logger import Logger
 
 
 class AppiumServer(Logger):
-    AppiumService = AppiumService
 
     def __init__(self, appium_args: List[str] = None, **kwargs: Any):
         """ Initialize Appium wrapper """
         super().__init__()
         self.port = find_free_port()
-        self.service = AppiumServer.AppiumService()
+        self.service = AppiumService()
         self._extra_args = kwargs
         self._appium_args = appium_args or []
 
