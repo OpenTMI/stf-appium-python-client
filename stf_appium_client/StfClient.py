@@ -115,7 +115,7 @@ class StfClient(Logger):
             nonlocal self, device
             try:
                 if device.get('owner') == "me":
-                    self.logger.warn(f"exit:Release device {device.get('serial')}")
+                    self.logger.info(f"exit:Release device {device.get('serial')}")
                     self.release(device)
             except AssertionError as error:
                 self.logger.error(f'releasing fails: {error}')
