@@ -32,23 +32,8 @@ class StfClient(Logger):
         :return: None
         """
         self.logger.debug(f"Fetch API spec from: {self._configuration}")
-
         self._configuration.api_key['accessTokenAuth'] = f"Bearer {token}"
         self._client = ApiClient(self._configuration)
-
-        """
-        # load Swagger resource file into App object
-        try:
-            self._app = App._create_(url)  # pylint: disable-line
-        except (FileNotFoundError, urllib.error.URLError) as error:
-            self.logger.error(error)
-            raise
-        auth = Security(self._app)
-        auth.update_with('accessTokenAuth', f"Bearer {token}")  # token
-        # init swagger client
-        self._client = Client(auth)
-        """
-
         self.logger.info('StfClient library initiated')
 
     def get_devices(self, fields: list = []) -> list:
@@ -67,24 +52,8 @@ class StfClient(Logger):
         ])
 
         api_instance = DevicesApi(self._client)
-        # target = "user"  # str | Targets devices of your universe:  * bookable - devices belonging to a bookable group  * standard - devices belonging to a standard group  * origin - all devices  * standardizable - devices which are not yet booked including those belonging to a standard group  * user (default value) - devices which are accessible by you at a given time  (optional) if omitted the server will use the default value of "user"
         api_response = api_instance.get_devices(fields=','.join(fields))
         devices = api_response.devices
-        """
-        fields.extend([
-            'present', 'ready', 'using', 'owner', 'marketName',
-            'serial', 'manufacturer', 'model', 'platform', 'sdk', 'version',
-            'status'
-        ])
-        self.logger.debug('stf: get devices..')
-        req, resp = self._app.op['getDevices'](fields=','.join(fields))
-        # prefer json as response
-        req.produce('application/json')
-        response = self._client.request((req, resp))
-        assert response.status == 200, 'Could not fetch device list'
-        devices = response.data.devices
-        """
-
         assert isinstance(devices, list), 'invalid response'
         self.logger.debug(f'Got devices: {devices}')
         return devices
