@@ -32,10 +32,10 @@ These instructions will get you a copy of the project up and running on your loc
 * adb
 * appium (`npm install appium`)
   Library expects that appium is located to PATH
-  * appium 2
+  * appium 2 (`npm install appium@next`)
     * remember to install appium drivers, e.g. `appium driver install uiautomator2`
   * appium 1
-
+  * note that appium server and client need to be compatible with each other!
 ### Installing
 
 * `pip install stf-appium-client`
