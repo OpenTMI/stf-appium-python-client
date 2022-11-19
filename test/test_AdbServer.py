@@ -65,7 +65,7 @@ class TestAdbServer:
             python = sys.executable
             return EasyProcess([python, "-c", 'import time\ntime.sleep(10)']).call(timeout=timeout)
         mock_easy_process.return_value.call.side_effect = call
-        adb_server = AdbServer('locvalhost', port=1000)
+        adb_server = AdbServer('localhost', port=1000)
         resp = adb_server.execute('hello', timeout=0.1)
         assert resp.timeout_happened
         assert resp.return_code == -15
