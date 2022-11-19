@@ -58,12 +58,12 @@ class AdbServer(Logger):
         """ Get local adb server port """
         return self._port
 
-    def execute(self, command: str, timeout: int = 2):
+    def execute(self, command: str, timeout: int = 2) -> EasyProcess:
         """
         Internal execute function
-        :param command: adb command to be execute
+        :param command: adb command to be executed
         :param timeout: command timeout
-        :return: EasyProcess instance which contains stdout, stderr and return_code
+        :return: EasyProcess instance which contains stdout, stderr, return_code, timeout_happened
         """
         port = f"-P {self.port} " if self.port else ""
         cmd = f"adb {port} {command}"

@@ -1,8 +1,11 @@
 import logging
+import sys
 from shutil import which
+from time import sleep
 from unittest.mock import MagicMock, patch
 
 import pytest
+from easyprocess import EasyProcess
 
 from stf_appium_client.AdbServer import AdbServer
 
@@ -54,3 +57,16 @@ class TestAdbServer:
         assert resp.stderr == 'abc'
         mock_easy_process.assert_called_once()
         mock_easy_process.return_value.call.assert_called_once_with(timeout=10)
+
+    @patch('stf_appium_client.AdbServer.EasyProcess')
+    def test_execute_timeout(self, mock_easy_process):
+
+        def call(timeout):
+            python = sys.executable
+            return EasyProcess([python, "-c", 'import time\ntime.sleep(10)']).call(timeout=timeout)
+        mock_easy_process.return_value.call.side_effect = call
+        adb_server = AdbServer('locvalhost', port=1000)
+        resp = adb_server.execute('hello', timeout=0.1)
+        assert resp.timeout_happened
+        assert resp.return_code == -15
+        mock_easy_process.assert_called_once()
