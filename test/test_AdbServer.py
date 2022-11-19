@@ -68,5 +68,4 @@ class TestAdbServer:
         adb_server = AdbServer('localhost', port=1000)
         resp = adb_server.execute('hello', timeout=0.1)
         assert resp.timeout_happened
-        assert resp.return_code == -15
         mock_easy_process.assert_called_once()
