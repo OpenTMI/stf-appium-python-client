@@ -20,16 +20,16 @@ jobs:
         python-version: [ '3.7', '3.8', '3.9', '3.10' ]
     name: ${{ matrix.os }}-Python-${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Setup Node.js
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
 
