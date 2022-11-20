@@ -24,8 +24,9 @@ class TestAdbServer:
                 main()
         assert cm.value.code == 1
 
-    def test_host_not_found(self):
+    @patch('shutil.which')
+    def test_host_not_found(self, mock_which):
         testargs = ["prog", "--token", "123", "--host", "http://test"]
-        with pytest.raises(urllib3.exceptions.MaxRetryError) as error:
+        with pytest.raises(urllib3.exceptions.MaxRetryError):
             with patch.object(sys, 'argv', testargs):
                 main()
