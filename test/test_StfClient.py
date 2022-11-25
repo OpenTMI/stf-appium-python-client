@@ -2,6 +2,9 @@ import unittest
 import logging
 import types
 from unittest.mock import patch, MagicMock
+
+from stf_client.exceptions import ForbiddenException
+
 from stf_appium_client.StfClient import StfClient
 from stf_appium_client.exceptions import *
 
@@ -134,12 +137,12 @@ class TestStfClient(unittest.TestCase):
     def test_find_and_allocate_second_success(self, mock_choise):
         invalid = {'serial': '12', 'present': False, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         available = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
-        self.client.get_devices = MagicMock(return_value=[invalid, available])
+        self.client.get_devices = MagicMock(return_value=[invalid, available, available])
 
         def dummy_alloc(dev, timeout_seconds):
             return dev
 
-        self.client.allocate = MagicMock(side_effect=dummy_alloc)
+        self.client.allocate = MagicMock(side_effect=[ForbiddenException, dummy_alloc])
 
         device = self.client.find_and_allocate({})
         available['owner'] = 'me'
