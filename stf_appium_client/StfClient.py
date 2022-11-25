@@ -4,6 +4,9 @@ import random
 import json
 from pydash import filter_, map_, wrap, find, uniq
 import atexit
+
+from stf_client.exceptions import ForbiddenException
+
 from stf_appium_client.Logger import Logger
 from stf_appium_client.exceptions import DeviceNotFound, NotConnectedError
 from stf_client.api_client import ApiClient, Configuration
@@ -197,7 +200,7 @@ class StfClient(Logger):
             def try_allocate(device):
                 try:
                     return self.allocate(device, timeout_seconds=timeout_seconds)
-                except AssertionError as error:
+                except (AssertionError, ForbiddenException) as error:
                     self.logger.warning(f"{device.get('serial')}Allocation fails: {error}")
                     return None
 
