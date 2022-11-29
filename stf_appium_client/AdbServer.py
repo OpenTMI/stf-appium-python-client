@@ -72,7 +72,9 @@ class AdbServer(Logger):
         if "ADB_VENDOR_KEYS" not in my_env:
             my_env["ADB_VENDOR_KEYS"] = "~/.android"
         response = EasyProcess(cmd, env=my_env).call(timeout=timeout)
-        self.logger.debug(f'adb stdout: {response.stdout}')
+        self.logger.debug(f'adb retcode: {response.return_code}, '
+                          f'stdout: {response.stdout}, '
+                          f'stderr: {response.stderr}')
         return response
 
     def connect(self) -> None:
