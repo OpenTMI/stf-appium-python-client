@@ -89,7 +89,7 @@ class StfClient(Logger):
                 if device.get('owner') == "me":
                     self.logger.info(f"exit:Release device {device.get('serial')}")
                     self.release(device)
-            except AssertionError as error:
+            except (AssertionError, ForbiddenException) as error:
                 self.logger.error(f'releasing fails: {error}')
 
         return device
