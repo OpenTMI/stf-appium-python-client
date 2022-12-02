@@ -65,6 +65,7 @@ def lock():
         lockfile = PidFile(pidname='stf.pid', piddir=tempfile.gettempdir(), register_term_signal_handler=False)
         lockfile.create()
         yield lockfile
-        lockfile.close()
     except PidFileError:
         raise AssertionError('Lock in use')
+    finally:
+        lockfile.close()
