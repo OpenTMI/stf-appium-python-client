@@ -42,7 +42,8 @@ setup(
         "stf-client==0.1.0",
         "pydash",
         "easyprocess",
-        "requests"
+        "requests",
+        "pid"
     ],
     entry_points={
         'console_scripts': [
