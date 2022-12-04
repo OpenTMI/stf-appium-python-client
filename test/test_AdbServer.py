@@ -38,7 +38,7 @@ class TestAdbServer:
     def test_execute_success(self, mock_easy_process):
         mock_easy_process.return_value.call.return_value.stdout = '123'
         mock_easy_process.return_value.call.return_value.return_code = 0
-        adb_server = AdbServer('locvalhost', port=1000)
+        adb_server = AdbServer('localhost', port=1000)
         resp = adb_server.execute('hello', 10)
         assert resp.return_code == 0
         assert resp.stdout == '123'
@@ -46,15 +46,26 @@ class TestAdbServer:
         mock_easy_process.return_value.call.assert_called_once_with(timeout=10)
 
     @patch('stf_appium_client.AdbServer.EasyProcess')
-    def test_execute_fail(self, mock_easy_process):
+    def test_execute_fail_no_verify(self, mock_easy_process):
+        mock_easy_process.return_value.call.return_value.stderr = 'abc'
+        mock_easy_process.return_value.call.return_value.stdout = '123'
+        mock_easy_process.return_value.call.return_value.return_code = 1
+        adb_server = AdbServer('localhost', port=1000)
+        resp = adb_server.execute('hello', 10, verify=False)
+        assert resp.return_code == 1
+        assert resp.stdout == '123'
+        assert resp.stderr == 'abc'
+        mock_easy_process.assert_called_once()
+        mock_easy_process.return_value.call.assert_called_once_with(timeout=10)
+
+    @patch('stf_appium_client.AdbServer.EasyProcess')
+    def test_execute_fail_verify(self, mock_easy_process):
         mock_easy_process.return_value.call.return_value.stderr = 'abc'
         mock_easy_process.return_value.call.return_value.stdout = '123'
         mock_easy_process.return_value.call.return_value.return_code = 1
         adb_server = AdbServer('locvalhost', port=1000)
-        resp = adb_server.execute('hello', 10)
-        assert resp.return_code == 1
-        assert resp.stdout == '123'
-        assert resp.stderr == 'abc'
+        with pytest.raises(AssertionError):
+            adb_server.execute('hello', 10)
         mock_easy_process.assert_called_once()
         mock_easy_process.return_value.call.assert_called_once_with(timeout=10)
 
@@ -66,6 +77,6 @@ class TestAdbServer:
             return EasyProcess([python, "-c", 'import time\ntime.sleep(10)']).call(timeout=timeout)
         mock_easy_process.return_value.call.side_effect = call
         adb_server = AdbServer('localhost', port=1000)
-        resp = adb_server.execute('hello', timeout=0.1)
+        resp = adb_server.execute('hello', timeout=0.01, verify=False)
         assert resp.timeout_happened
         mock_easy_process.assert_called_once()
