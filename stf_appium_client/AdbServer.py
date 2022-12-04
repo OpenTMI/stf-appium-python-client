@@ -58,15 +58,17 @@ class AdbServer(Logger):
         """ Get local adb server port """
         return self._port
 
-    def execute(self, command: str, timeout: int = 2) -> EasyProcess:
+    def execute(self, command: str, timeout: int = 10, verify: bool = True) -> EasyProcess:
         """
         Internal execute function
         :param command: adb command to be executed
-        :param timeout: command timeout
+        :param timeout: command timeout [s]
+        :param verify: verify return code is 0 of executed adb command, Also timeout causes assert raise.
         :return: EasyProcess instance which contains stdout, stderr, return_code, timeout_happened
+        :raise AssertionError: if non 0 is returned or timeout happens and verify=True.
         """
-        port = f"-P {self.port} " if self.port else ""
-        cmd = f"adb {port} {command}"
+        port = f" -P {self.port}" if self.port else ""
+        cmd = f"adb{port} {command}"
         self.logger.debug(f"adb: {cmd}")
         my_env = os.environ.copy()
         if "ADB_VENDOR_KEYS" not in my_env:
@@ -75,6 +77,9 @@ class AdbServer(Logger):
         self.logger.debug(f'adb retcode: {response.return_code}, '
                           f'stdout: {response.stdout}, '
                           f'stderr: {response.stderr}')
+        if verify:
+            assert response.timeout_happened is False, f'adb command "{cmd}" timeout ({timeout}s)'
+            assert response.return_code == 0, f'adb command "{cmd}" fails with code: {response.return_code}'
         return response
 
     def connect(self) -> None:
