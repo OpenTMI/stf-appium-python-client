@@ -30,6 +30,7 @@ class TestAdbServer:
     def test_context(self, mock_easy_process, mock_which):
         mock_easy_process.return_value.call.return_value.stdout = ''
         mock_easy_process.return_value.call.return_value.return_code = 0
+        mock_easy_process.return_value.call.return_value.timeout_happened = False
         with AdbServer('localhost') as adb:
             assert isinstance(adb.port, int)
 
@@ -37,6 +38,7 @@ class TestAdbServer:
     def test_execute_success(self, mock_easy_process):
         mock_easy_process.return_value.call.return_value.stdout = '123'
         mock_easy_process.return_value.call.return_value.return_code = 0
+        mock_easy_process.return_value.call.return_value.timeout_happened = False
         adb_server = AdbServer('localhost', port=1000)
         resp = adb_server.execute('hello', 10)
         assert resp.return_code == 0
