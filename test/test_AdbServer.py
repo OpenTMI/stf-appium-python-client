@@ -1,8 +1,7 @@
 import logging
 import sys
 from shutil import which
-from time import sleep
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from easyprocess import EasyProcess
