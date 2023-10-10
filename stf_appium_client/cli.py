@@ -89,17 +89,17 @@ def main():
                     with AppiumServer(appium_args=appium_args, **extra_args) as appium:
                         appium.logger.info(f"appium server listening localhost:{appium.port}")
 
-                        appium.logger.info(f'Device in use: {device.manufacturer}:{device.marketName}, model: {device.model}, sn: {device.serial}')
+                        appium.logger.info(f'Device in use: {device["manufacturer"]}:{device["marketName"]}, model: {device["model"]}, sn: {device["serial"]}')
 
                         custom_env = {}
                         custom_env["DEV1_ADB_PORT"] = f"{adb.port}"
                         custom_env["DEV1_APPIUM_HOST"] = f'127.0.0.1:{appium.port}'
                         custom_env["DEV1_APPIUM_WD_HUB_URI"] = f'http://127.0.0.1:{appium.port}/wd/hub'
-                        custom_env["DEV1_SERIAL"] = device.serial
-                        custom_env["DEV1_VERSION"] = device.version
-                        custom_env["DEV1_MODEL"] = device.model
-                        custom_env["DEV1_MANUFACTURER"] = device.manufacturer
-                        custom_env["DEV1_MARKET_NAME"] = device.marketName
+                        custom_env["DEV1_SERIAL"] = device["serial"]
+                        custom_env["DEV1_VERSION"] = device["version"]
+                        custom_env["DEV1_MODEL"] = device["model"]
+                        custom_env["DEV1_MANUFACTURER"] = device["manufacturer"]
+                        custom_env["DEV1_MARKET_NAME"] = device["marketName"]
                         custom_env["DEV1_REQUIREMENTS"] = f"{requirement}"
                         custom_env["DEV1_INFO"] = json.dumps(device)
                         appium.logger.info('Env variables:')
