@@ -38,7 +38,7 @@ setup(
     classifiers=CLASSIFIERS,
     setup_requires=["setuptools_scm"],
     install_requires=[
-        "Appium-Python-Client",
+        "Appium-Python-Client<=3",
         "stf-client==0.1.0",
         "pydash",
         "easyprocess",
