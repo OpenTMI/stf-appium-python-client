@@ -30,7 +30,7 @@ class AppiumServer(Logger):
             return f'http://127.0.0.1:{self.port}/wd/hub'
         elif version.startswith("2."):
             return f'http://127.0.0.1:{self.port}'
-        raise AssertionError('appium version not supported')
+        raise AssertionError(f'appium version not supported {version}')
 
     def start(self):
         assert not self.service.is_running, 'Appium already running'
