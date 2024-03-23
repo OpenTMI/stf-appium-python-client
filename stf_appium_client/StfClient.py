@@ -233,8 +233,10 @@ class StfClient(Logger):
         :return: device dictionary
         """
         wait_until = time.time() + wait_timeout
-        while wait_until - time.time() > 0:
+        print(f'wait_until: {wait_until}')
+        while True:
             remaining_time = int(wait_until - time.time())
+            print(f'remaining_time: {remaining_time}')
             try:
                 return self.find_and_allocate(requirements=requirements,
                                               timeout_seconds=timeout_seconds,
@@ -243,6 +245,8 @@ class StfClient(Logger):
                 # Wait a while
                 self.logger.debug(f'Suitable device not available, '
                                   f'wait a while and try again. Timeout in {remaining_time} seconds')
+            if (wait_until - time.time()) <= 0:
+                break
             # Wait a while to avoid too frequent polling
             time.sleep(1)
         raise DeviceNotFound(f'Suitable device not found within {wait_timeout}s timeout ({json.dumps(requirements)})')

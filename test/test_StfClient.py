@@ -222,3 +222,14 @@ class TestStfClient(unittest.TestCase):
                 pass
         self.assertEqual(str(error.exception), 'Suitable device not found within 0s timeout ({"serial": "123"})')
 
+    @patch('time.sleep', return_value=MagicMock())
+    @patch('time.time')
+    def test_allocation_context_timeout_long(self, mock_time, mock_sleep):
+        dev1 = {'serial': '123', 'present': True, 'ready': True, 'using': True, 'owner': "asd", 'status': 3}
+        self.client.get_devices = MagicMock(return_value=[dev1])
+        self.client.stf_find_and_allocate = MagicMock(side_effect=DeviceNotFound)
+        mock_time.side_effect = [0, 0, 0, 10, 10, 10]
+        with self.assertRaises(DeviceNotFound) as error:
+            with self.client.allocation_context({"serial": '123'}, wait_timeout=10):
+                pass
+        self.assertEqual(str(error.exception), 'Suitable device not found within 10s timeout ({"serial": "123"})')
