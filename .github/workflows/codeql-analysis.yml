@@ -14,8 +14,8 @@ on:
       - dependabot/**
   pull_request:
     # The branches below must be a subset of the branches above
-    branches:
-      - develop
+    branches-ignore:
+      - dependabot/**
   schedule:
     - cron: '0 14 * * 6'
 
