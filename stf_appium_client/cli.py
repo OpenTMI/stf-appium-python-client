@@ -28,8 +28,8 @@ def main():
                     'DEV1_MODEL\n'
                     'DEV1_MARKET_NAME\n'
                     'DEV1_REQUIREMENTS  user given requirements\n'
-                    'DEV1_INFO          phone details\n'
-                    '\nExample: stf --token 123 -- echo \$DEV1_SERIAL',
+                    'DEV1_INFO          phone details\n\n'
+                    'Example: stf --token 123 -- echo $DEV1_SERIAL',
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--token',
                         required=True,

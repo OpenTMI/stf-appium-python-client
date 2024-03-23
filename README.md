@@ -44,6 +44,8 @@ These instructions will get you a copy of the project up and running on your loc
     * remember to install appium drivers, e.g. `appium driver install uiautomator2`
   * appium 1
   * note that appium server and client need to be compatible with each other!
+    * see compatibility matrix from [python-client readme](https://github.com/appium/python-client?tab=readme-ov-file#compatibility-matrix)
+  
 ### Installing
 
 * `pip install stf-appium-client`
@@ -64,6 +66,7 @@ CI runs tests against following environments:
 | 3.8  | ✓  | ✓  | ✓  |
 | 3.9  | ✓  | ✓  | ✓  |
 | 3.10 | ✓  | ✓  | ✓  |
+| 3.11 | ✓  | ✓  | ✓  |
 
 ### Deployment
 
@@ -148,6 +151,6 @@ optional arguments:
 
 ```
 
-License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
