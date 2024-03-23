@@ -14,12 +14,13 @@ from stf_client.api_client import ApiClient, Configuration
 from stf_client.api.user_api import UserApi
 from stf_client.api.devices_api import DevicesApi
 
+
 class StfClient(Logger):
     DEFAULT_ALLOCATION_TIMEOUT_SECONDS = 900
 
     def __init__(self, host: str):
         """
-        OpenSTF Client consructor
+        STF Client constructor
         :param host: Server address of OpenSTF
         """
         super().__init__()

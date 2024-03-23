@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/stf-appium-client.svg)](https://badge.fury.io/py/stf-appium-client)
 
 Library provides basic functionality for test automation which allows allocating
-phone from [OpenSTF](https://github.com/DeviceFarmer/stf) server using [python stf-client](https://pypi.org/project/stf-client/), initialise adb connection to it and 
+phone from [STF](https://github.com/DeviceFarmer/stf) server using [python stf-client](https://pypi.org/project/stf-client/), initialise adb connection to it and 
 start [appium][https://github.com/appium/python-client] server for it.
 
 Basic idea is to run tests against remote openstf device farm with minimum
@@ -13,14 +13,22 @@ requirements.
 
 
 ### Flow
+```mermaid
+sequenceDiagram
+    participant C as User
+    participant A as stf-appium-client
+    participant B as STF(device)
+    C->>A: allocation_context(requirements, wait_timeout, timeout, shuffle)
+    A->>B: Find suitable device
+    A->>B: allocate device
+    A->>B: remoteConnect
+    A->>B: ADB Connection
+    A->>A: Start AppiumServer(ADB)
+    A->>A: Start AppiumClient(AppiumServer)
+    A->>C: AppiumClient(AppiumServer(ADB))
+    C->>A: Run Appium Tests
 ```
-stf-appium-client      --find/allocate--> OpenSTF(device)
-stf-appium-client      --remoteConnect--> OpenSTF(device)
-stf-appium-client(ADB) <----------------> OpenSTF(ADB)
-stf-appium-client(AppiumServer(ADB))
-stf-appium-client(AppiumClient(AppiumServer))
-..appium tests..
-```
+
 
 ### Getting Started
 

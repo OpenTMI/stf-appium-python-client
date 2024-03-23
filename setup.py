@@ -54,7 +54,7 @@ setup(
     extras_require={  # Optional
         'dev': ['wheel', 'mock', 'pylint', 'pytest', 'pytest-cov', 'pytest-mock', 'pyinstaller', 'coveralls']
     },
-    keywords="OpenSTF appium robot-framework lockable resource android",
+    keywords="DeviceFarmer STF appium pytest robot-framework lockable resource android",
     python_requires=">=3.7",
     project_urls={
         'Homepage': 'https://github.com/OpenTMI/stf-appium-python-client',
