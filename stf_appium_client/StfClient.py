@@ -207,7 +207,7 @@ class StfClient(Logger):
         def try_allocate(device_candidate):
             try:
                 return self.allocate(device_candidate, timeout_seconds=timeout_seconds)
-            except AssertionError as error:
+            except (AssertionError, ForbiddenException) as error:
                 self.logger.warning(f"{device_candidate.get('serial')} allocation fails: {error}")
                 return None
 
@@ -245,7 +245,7 @@ class StfClient(Logger):
                                   f'wait a while and try again. Timeout in {remaining_time} seconds')
             # Wait a while to avoid too frequent polling
             time.sleep(1)
-        raise DeviceNotFound(f'Suitable device not found within timeout ({wait_timeout})')
+        raise DeviceNotFound(f'Suitable device not found within {wait_timeout}s timeout ({json.dumps(requirements)})')
 
     @contextmanager
     def allocation_context(self, requirements: dict,
