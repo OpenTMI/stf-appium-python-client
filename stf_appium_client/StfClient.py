@@ -14,12 +14,13 @@ from stf_client.api_client import ApiClient, Configuration
 from stf_client.api.user_api import UserApi
 from stf_client.api.devices_api import DevicesApi
 
+
 class StfClient(Logger):
     DEFAULT_ALLOCATION_TIMEOUT_SECONDS = 900
 
     def __init__(self, host: str):
         """
-        OpenSTF Client consructor
+        STF Client constructor
         :param host: Server address of OpenSTF
         """
         super().__init__()
@@ -185,11 +186,15 @@ class StfClient(Logger):
                           timeout_seconds: int = DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
                           shuffle: bool = True) -> dict:
         """
-        Find device based on requirements and allocate first
+        Find device based on requirements and allocate first.
+        Note that this method doesn't wait for device to be free.
+
         :param requirements: dictionary about requirements, e.g. `dict(platform='android')`
         :param timeout_seconds: allocation timeout when idle, see more from allocation api.
         :param shuffle: randomize allocation
         :return: device dictionary
+
+        :raises DeviceNotFound: suitable device not found or all devices are allocated already
         """
         NotConnectedError.invariant(self._client, 'Not connected')
         suitable_devices = self.list_devices(requirements=requirements)
@@ -199,22 +204,20 @@ class StfClient(Logger):
 
         self.logger.debug(f'Found {len(suitable_devices)} suitable devices, try to allocate one')
 
-        def allocate_first():
-            def try_allocate(device):
-                try:
-                    return self.allocate(device, timeout_seconds=timeout_seconds)
-                except (AssertionError, ForbiddenException) as error:
-                    self.logger.warning(f"{device.get('serial')}Allocation fails: {error}")
-                    return None
+        def try_allocate(device_candidate):
+            try:
+                return self.allocate(device_candidate, timeout_seconds=timeout_seconds)
+            except (AssertionError, ForbiddenException) as error:
+                self.logger.warning(f"{device_candidate.get('serial')} allocation fails: {error}")
+                return None
 
-            tasks = map_(suitable_devices, lambda item: wrap(item, try_allocate))
-            return find(tasks, lambda allocFunc: allocFunc())
+        # generate try_allocate tasks for suitable devices
+        tasks = map_(suitable_devices, lambda item: wrap(item, try_allocate))
+        # find first successful allocation
+        result = find(tasks, lambda allocFunc: allocFunc())
 
-        result = allocate_first()
-        if not result:
-            raise DeviceNotFound()
-        device = result.args[0]
-        return device
+        DeviceNotFound.invariant(result, 'no suitable devices found')
+        return result.args[0]
 
     def find_wait_and_allocate(self,
                                requirements: dict,
@@ -229,19 +232,24 @@ class StfClient(Logger):
         :param shuffle: allocate suitable device randomly.
         :return: device dictionary
         """
-        device = None
-        for i in range(wait_timeout):  # try to allocate for 1 minute..
+        wait_until = time.time() + wait_timeout
+        print(f'wait_until: {wait_until}')
+        while True:
+            remaining_time = int(wait_until - time.time())
+            print(f'remaining_time: {remaining_time}')
             try:
-                device = self.find_and_allocate(requirements=requirements,
-                                                timeout_seconds=timeout_seconds,
-                                                shuffle=shuffle)
-                break
+                return self.find_and_allocate(requirements=requirements,
+                                              timeout_seconds=timeout_seconds,
+                                              shuffle=shuffle)
             except DeviceNotFound:
                 # Wait a while
-                time.sleep(1)
-                pass
-        DeviceNotFound.invariant(device, 'Suitable device not found')
-        return device
+                self.logger.debug(f'Suitable device not available, '
+                                  f'wait a while and try again. Timeout in {remaining_time} seconds')
+            if (wait_until - time.time()) <= 0:
+                break
+            # Wait a while to avoid too frequent polling
+            time.sleep(1)
+        raise DeviceNotFound(f'Suitable device not found within {wait_timeout}s timeout ({json.dumps(requirements)})')
 
     @contextmanager
     def allocation_context(self, requirements: dict,
@@ -267,4 +275,3 @@ class StfClient(Logger):
         self.remote_connect(device)
         yield device
         self.release(device)
-

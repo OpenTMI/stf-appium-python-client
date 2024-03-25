@@ -29,7 +29,7 @@ class AppiumServer(Logger):
         if version.startswith("1."):
             return f'http://127.0.0.1:{self.port}/wd/hub'
         else:
-            return f'http://127.0.0.1:{self.port}'
+            return f'http://127.0.0.1:{self.port}'  # Appium >= 2.0
 
     def start(self):
         assert not self.service.is_running, 'Appium already running'
