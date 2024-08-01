@@ -107,6 +107,14 @@ class TestStfClient(unittest.TestCase):
         with self.assertRaises(DeviceNotFound):
             self.client.find_and_allocate({})
 
+    def test_fail_fast(self):
+
+        class MockResp:
+            devices = [{'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 1}]
+        self.DevicesApi.return_value.get_devices = MagicMock(return_value=MockResp())
+        with self.assertRaises(DeviceNotFound):
+            self.client.find_and_allocate({})
+
     def test_list_devices(self):
         available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[available])
