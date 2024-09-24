@@ -36,7 +36,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 * openstf server and access token 
-* python >=3.7
+* python >=3.8
 * adb
 * appium (`npm install appium`)
   Library expects that appium is located to PATH
