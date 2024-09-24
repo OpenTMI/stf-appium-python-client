@@ -14,6 +14,8 @@ from stf_client.api_client import ApiClient, Configuration
 from stf_client.api.user_api import UserApi
 from stf_client.api.devices_api import DevicesApi
 
+STATUS_ONLINE = 3
+
 
 class StfClient(Logger):
     DEFAULT_ALLOCATION_TIMEOUT_SECONDS = 900
@@ -148,11 +150,12 @@ class StfClient(Logger):
         device['owner'] = None
         self.logger.info(f'{serial}: released')
 
-    def list_devices(self, requirements: dict, fields: str = "") -> list:
+    def list_devices(self, requirements: dict, fields: str = "", available_filter: bool = True) -> list:
         """
         Get list of devices filtered by given requirements and optional extra fields
         :param requirements: filter dictionary
         :param fields: extra fields to include
+        :param available_filter: filter only available devices
         :return: list of objects that represent devices
         """
         req_keys = list(requirements.keys())
@@ -165,15 +168,15 @@ class StfClient(Logger):
         fields = uniq(req_keys)
 
         predicate = requirements.copy()
-
-        predicate.update(
-            dict(
-                present=True,
-                ready=True,
-                using=False,
-                owner=None,
-                status=3)  # 3=Online
-        )
+        if available_filter:
+            predicate.update(
+                dict(
+                    present=True,
+                    ready=True,
+                    using=False,
+                    owner=None,
+                    status=STATUS_ONLINE)
+            )
 
         self.logger.debug(
             f"Find devices with requirements: {json.dumps(requirements)}, using fields: {','.join(fields)}")
@@ -181,6 +184,12 @@ class StfClient(Logger):
         devices = self.get_devices(fields=fields)
 
         return filter_(devices, predicate)
+
+    def list_online_devices(self, requirements: dict):
+        suitable_devices = self.list_devices(requirements=requirements)
+        online = filter(lambda device: device.get('status') == STATUS_ONLINE, suitable_devices)
+        return list(online)
+
 
     def find_and_allocate(self, requirements: dict,
                           timeout_seconds: int = DEFAULT_ALLOCATION_TIMEOUT_SECONDS,
@@ -197,7 +206,7 @@ class StfClient(Logger):
         :raises DeviceNotFound: suitable device not found or all devices are allocated already
         """
         NotConnectedError.invariant(self._client, 'Not connected')
-        suitable_devices = self.list_devices(requirements=requirements)
+        suitable_devices = self.list_online_devices(requirements=requirements)
         DeviceNotFound.invariant(len(suitable_devices), 'no suitable devices found')
         if shuffle:
             random.shuffle(suitable_devices)
@@ -233,6 +242,12 @@ class StfClient(Logger):
         :return: device dictionary
         """
         wait_until = time.time() + wait_timeout
+
+        # Fail fast if no suitable devices
+        suitable_devices = self.list_devices(requirements=requirements, available_filter=False)
+        if not suitable_devices:
+            raise DeviceNotFound(f'No suitable devices found ({json.dumps(requirements)})')
+
         print(f'wait_until: {wait_until}')
         while True:
             remaining_time = int(wait_until - time.time())

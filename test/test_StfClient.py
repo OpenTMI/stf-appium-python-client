@@ -107,6 +107,14 @@ class TestStfClient(unittest.TestCase):
         with self.assertRaises(DeviceNotFound):
             self.client.find_and_allocate({})
 
+    def test_fail_fast(self):
+
+        class MockResp:
+            devices = [{'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 1}]
+        self.DevicesApi.return_value.get_devices = MagicMock(return_value=MockResp())
+        with self.assertRaises(DeviceNotFound):
+            self.client.find_and_allocate({})
+
     def test_list_devices(self):
         available = {'serial': 123, 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
         self.client.get_devices = MagicMock(return_value=[available])
@@ -205,7 +213,7 @@ class TestStfClient(unittest.TestCase):
     @patch('time.sleep', side_effect=MagicMock())
     def test_allocation_context_wait_success(self, mock_sleep):
         dev1 = {'serial': '123', 'present': True, 'ready': True, 'using': False, 'owner': None, 'status': 3}
-        self.client.get_devices = MagicMock(side_effect=[[], [dev1]])
+        self.client.get_devices = MagicMock(side_effect=[[dev1], [], [dev1]])
         url = '123'
 
         with self.client.allocation_context({"serial": '123'}) as device:
