@@ -1,9 +1,7 @@
 import socket
 import json
 import shutil
-import tempfile
-from contextlib import closing, contextmanager
-from pid import PidFile, PidFileError
+from contextlib import closing
 
 
 def find_free_port() -> int:
@@ -55,17 +53,3 @@ def parse_requirements(requirements_str: str) -> dict:
                     dest[subkey] = value
             split(requirements, key)
         return requirements
-
-@contextmanager
-def lock():
-    """
-    Master lock
-    """
-    try:
-        lockfile = PidFile(pidname='stf.pid', piddir=tempfile.gettempdir(), register_term_signal_handler=False)
-        lockfile.create()
-        yield lockfile
-    except PidFileError:
-        raise AssertionError('Lock in use')
-    finally:
-        lockfile.close()
