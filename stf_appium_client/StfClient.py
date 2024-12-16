@@ -9,7 +9,6 @@ from stf_client.exceptions import ForbiddenException
 
 from stf_appium_client.Logger import Logger
 from stf_appium_client.exceptions import DeviceNotFound, NotConnectedError
-from stf_appium_client.tools import lock
 from stf_client.api_client import ApiClient, Configuration
 from stf_client.api.user_api import UserApi
 from stf_client.api.devices_api import DevicesApi
@@ -81,8 +80,7 @@ class StfClient(Logger):
         timeout = timeout_seconds * 1000
 
         api_instance = UserApi(self._client)
-        with lock():
-            api_response = api_instance.add_user_device_v2(serial, timeout=timeout)
+        api_response = api_instance.add_user_device_v2(serial, timeout=timeout)
         assert api_response.success, 'allocation fails'
         self.logger.info(f'{serial}: Allocated (timeout: {timeout_seconds})')
         device['owner'] = "me"
@@ -144,8 +142,7 @@ class StfClient(Logger):
         self.logger.debug(f'{serial}: releasing..')
 
         api_instance = UserApi(self._client)
-        with lock():
-            api_response = api_instance.delete_user_device_by_serial(serial)
+        api_response = api_instance.delete_user_device_by_serial(serial)
         assert api_response.success, 'release fails'
         device['owner'] = None
         self.logger.info(f'{serial}: released')
