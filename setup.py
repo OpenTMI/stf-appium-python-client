@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:copyright: (c) 2024 by Jussi Vatjus-Anttila
+:copyright: (c) 2025 by Jussi Vatjus-Anttila
 :license: MIT, see LICENSE for more details.
 """
 from setuptools import setup, find_packages
@@ -17,8 +17,6 @@ Operating System :: Microsoft :: Windows
 Operating System :: MacOS :: MacOS X
 Programming Language :: Python
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3.7
-Programming Language :: Python :: 3.8
 Programming Language :: Python :: 3.9
 Programming Language :: Python :: 3.10
 Programming Language :: Python :: 3.11
@@ -55,7 +53,7 @@ setup(
         'dev': ['wheel', 'mock', 'pylint', 'pytest', 'pytest-cov', 'pytest-mock', 'pyinstaller', 'coveralls']
     },
     keywords="DeviceFarmer STF appium pytest robot-framework lockable resource android",
-    python_requires=">=3.7",
+    python_requires=">=3.9",
     project_urls={
         'Homepage': 'https://github.com/OpenTMI/stf-appium-python-client',
         'Bug Reports': 'https://github.com/OpenTMI/stf-appium-python-client/issues',
