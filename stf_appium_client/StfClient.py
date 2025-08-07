@@ -284,6 +284,5 @@ class StfClient(Logger):
         self.logger.info(f'device allocated: {device}')
         adb_adr = self.remote_connect(device)
         device['remote_adb_url'] = adb_adr
-        self.remote_connect(device)
         yield device
         self.release(device)
